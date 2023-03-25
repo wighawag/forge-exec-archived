@@ -1,6 +1,14 @@
 lockfileVersion: 5.4
 
+patchedDependencies:
+  node-ipc@11.1.0:
+    hash: 3ojxb5d7tpfwbzjrbax4w35xyy
+    path: patches/node-ipc@11.1.0.patch
+
 importers:
+
+  .:
+    specifiers: {}
 
   demo:
     specifiers:
@@ -22,7 +30,7 @@ importers:
       ethers: 6.2.2
       named-logs: 0.2.2
       nanoid: 4.0.1
-      node-ipc: 11.1.0
+      node-ipc: 11.1.0_3ojxb5d7tpfwbzjrbax4w35xyy
     devDependencies:
       '@types/node': 18.15.9
       eip-1193: 0.2.4
@@ -749,7 +757,7 @@ packages:
     hasBin: true
     dev: false
 
-  /node-ipc/11.1.0:
+  /node-ipc/11.1.0_3ojxb5d7tpfwbzjrbax4w35xyy:
     resolution: {integrity: sha512-BfE098Uyx06O//uatDNbSNxa5HLejwd2gV33yU0VfYv5wm4e22Um3VnNTOacqSxcl02v4fx6ZNUqJG9ZK+0Ufg==}
     engines: {node: '>=14'}
     dependencies:
@@ -759,6 +767,7 @@ packages:
       peacenotwar: 9.1.7
       strong-type: 1.1.0
     dev: false
+    patched: true
 
   /noms/0.0.0:
     resolution: {integrity: sha512-lNDU9VJaOPxUmXcLb+HQFeUgQQPtMI24Gt6hgfuMHRJgMRHMF/qZ4HJD3GDru4sSw9IQl2jPjAYnQrdIeLbwow==}

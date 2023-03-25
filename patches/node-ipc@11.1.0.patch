@@ -1,0 +1,12 @@
+diff --git a/node-ipc.js b/node-ipc.js
+index 0dcf5be209bba2ce8eb5ba074510538c227a8418..1af3346f88a7ddce7249e6fd2fd832636c9f21d5 100644
+--- a/node-ipc.js
++++ b/node-ipc.js
+@@ -1,6 +1,6 @@
+ import IPC from './services/IPC.js';
+ import peacenotwar from 'peacenotwar';
+-console.log(peacenotwar);
++
+ 
+ class IPCModule extends IPC{
+     constructor(){
