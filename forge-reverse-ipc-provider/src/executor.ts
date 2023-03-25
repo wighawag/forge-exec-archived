@@ -7,7 +7,10 @@ const logPath = '.executor.log'; // `.executor_${process.pid}.log`
 const access = fs.createWriteStream(logPath);
 const oldStdoutWrite = process.stdout.write.bind(process.stdout);
 // const oldStderrWrite = process.stdout.write.bind(process.stderr);
-if (!process.env.FORGE_EIP_1193_LOGS) {
+if (process.env.FORGE_EXEC_LOGS === '') {
+	process.env.FORGE_EXEC_LOGS = undefined;
+}
+if (!process.env.FORGE_EXEC_LOGS) {
 	process.stdout.write = process.stderr.write = access.write.bind(access);
 }
 
@@ -22,8 +25,8 @@ function exitToTest() {
 }
 
 if (args[0] === 'init') {
-	// console.log('!!! initialization...');
-	const server = fork(args[1], {detached: true, silent: true}); // OPTION
+	console.log('!!! initialization...');
+	const server = process.env.FORGE_EXEC_LOGS ? fork(args[1]) : fork(args[1], {detached: true, silent: true});
 	console.log(`!!! serverPID: ${server.pid}`);
 	server.on('message', (childMessage: {type: string; socket: string}) => {
 		if (childMessage.type === 'acknowledgement') {

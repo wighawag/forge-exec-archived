@@ -6,6 +6,7 @@
   "keywords": [],
   "author": "",
   "main": "index.js",
+  "type": "module",
   "devDependencies": {
     "forge-reverse-ipc-provider": "workspace:*"
   },

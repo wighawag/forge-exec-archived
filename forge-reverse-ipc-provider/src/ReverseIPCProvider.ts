@@ -11,7 +11,10 @@ const logPath = './.ipc.log'; // `.ipc_${process.pid}.log`
 const access = fs.createWriteStream(logPath);
 // const oldStdoutWrite = process.stdout.write.bind(process.stdout);
 // const oldStderrWrite = process.stdout.write.bind(process.stderr);
-if (!process.env.FORGE_EIP_1193_LOGS) {
+if (process.env.FORGE_EXEC_LOGS === '') {
+	process.env.FORGE_EXEC_LOGS = undefined;
+}
+if (!process.env.FORGE_EXEC_LOGS) {
 	process.stdout.write = process.stderr.write = access.write.bind(access);
 }
 console.log(`!!! pid: ${process.pid}`);
