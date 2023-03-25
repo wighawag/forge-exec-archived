@@ -12,6 +12,18 @@ They just need to talk the same format through the given IPC socket
 forge install wighawag/forge-exec
 ```
 
+You also need to use [nodejs]()/[npm]() and setup a project
+
+```
+npm init
+```
+
+and install `forge-reverse-ipc-provider` package which will let the script to communicate back with forge
+
+```
+npm i -D forge-reverse-ipc-provider
+```
+
 ## Usage
 
 1. Add this import to your script or test:

@@ -18,14 +18,12 @@ importers:
       eip-1193: ^0.2.4
       ethers: ^6.0.8
       named-logs: ^0.2.2
-      nanoid: ^4.0.1
       tsup: ^6.7.0
       typescript: ^4.9.5
     dependencies:
       '@achrinza/node-ipc': 10.1.7
       ethers: 6.2.2
       named-logs: 0.2.2
-      nanoid: 4.0.1
     devDependencies:
       '@types/node': 18.15.9
       eip-1193: 0.2.4
@@ -673,12 +671,6 @@ packages:
 
   /named-logs/0.2.2:
     resolution: {integrity: sha512-uXvQSEp8W99elz/UFpmptvRkjbr+UwJRfONsTND/W4ncqLlio0hfIBKe2HUhz3pPHhNd1XUoHyf1cn8Pgxt4oA==}
-    dev: false
-
-  /nanoid/4.0.1:
-    resolution: {integrity: sha512-udKGtCCUafD3nQtJg9wBhRP3KMbPglUsgV5JVsXhvyBs/oefqb4sqMEhKBBgqZncYowu58p1prsZQBYvAj/Gww==}
-    engines: {node: ^14 || ^16 || >=18}
-    hasBin: true
     dev: false
 
   /normalize-path/3.0.0:

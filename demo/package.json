@@ -1,16 +1,11 @@
 {
   "name": "demo",
   "private": true,
-  "version": "0.0.0",
-  "description": "",
-  "keywords": [],
-  "author": "",
-  "main": "index.js",
   "type": "module",
   "devDependencies": {
     "forge-reverse-ipc-provider": "workspace:*"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "forge test"
   }
 }
