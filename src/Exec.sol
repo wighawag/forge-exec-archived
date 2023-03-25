@@ -71,14 +71,11 @@ library Exec {
     // private
     // --------------------------------------------------------------------------------------------
     function init1193(string memory jsmodule) private returns (bytes memory) {
-        string[] memory inputs = new string[](5);
-        inputs[0] = "node";
-        inputs[1] = "--no-warnings";
-        inputs[
-            2
-        ] = "node_modules/forge-reverse-ipc-provider/dist/esm/executor.js";
-        inputs[3] = "init";
-        inputs[4] = jsmodule;
+        string[] memory inputs = new string[](4);
+        inputs[0] = "npx";
+        inputs[1] = "forge-exec";
+        inputs[2] = "init";
+        inputs[3] = jsmodule;
         return vm.ffi(inputs);
     }
 
@@ -86,15 +83,12 @@ library Exec {
         string memory id,
         string memory errorMessage
     ) private {
-        string[] memory inputs = new string[](6);
-        inputs[0] = "node";
-        inputs[1] = "--no-warnings";
-        inputs[
-            2
-        ] = "node_modules/forge-reverse-ipc-provider/dist/esm/executor.js";
-        inputs[3] = "terminate";
-        inputs[4] = id;
-        inputs[5] = errorMessage;
+        string[] memory inputs = new string[](5);
+        inputs[0] = "npx";
+        inputs[1] = "forge-exec";
+        inputs[2] = "terminate";
+        inputs[3] = id;
+        inputs[4] = errorMessage;
 
         vm.ffi(inputs);
         revert(errorMessage);
@@ -104,15 +98,12 @@ library Exec {
         string memory id,
         string memory value
     ) private returns (bytes memory) {
-        string[] memory inputs = new string[](6);
-        inputs[0] = "node";
-        inputs[1] = "--no-warnings";
-        inputs[
-            2
-        ] = "node_modules/forge-reverse-ipc-provider/dist/esm/executor.js";
-        inputs[3] = "exec";
-        inputs[4] = id;
-        inputs[5] = value;
+        string[] memory inputs = new string[](5);
+        inputs[0] = "npx";
+        inputs[1] = "forge-exec";
+        inputs[2] = "exec";
+        inputs[3] = id;
+        inputs[4] = value;
 
         return vm.ffi(inputs);
     }
