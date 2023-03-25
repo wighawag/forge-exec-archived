@@ -11,12 +11,12 @@ contract ExecTest is Test {
         Exec.execute("./example.js");
     }
 
-    function testDeplyment() public {
+    function testDeplyment() public view {
         bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
         assert(code.length > 0);
     }
 
-    function testDeplymentAgain() public {
+    function testDeplymentAgain() public view {
         bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
         assert(code.length > 0);
     }

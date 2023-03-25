@@ -3,9 +3,6 @@ pragma solidity ^0.8.13;
 
 import {Vm} from "forge-std/Vm.sol";
 
-// TODO remove
-import "forge-std/Script.sol";
-
 library Exec {
     Vm constant vm =
         Vm(address(bytes20(uint160(uint256(keccak256("hevm cheat code"))))));
@@ -13,17 +10,10 @@ library Exec {
     function execute(string memory jsModule) internal {
         vm.startBroadcast();
 
-        console.log("start");
         bytes memory init = init1193(jsModule);
         string memory processID = abi.decode(init, (string));
 
-        console.log(string(bytes.concat("processID: ", bytes(processID))));
-
-        // TODO remove, not needed
-        // // ABI encoded "gm", as a hex string
-        string
-            memory response = "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002676d000000000000000000000000000000000000000000000000000000000000";
-
+        string memory response;
         while (true) {
             bytes memory request = call1193(processID, response);
 
@@ -61,8 +51,6 @@ library Exec {
                 terminate1193(processID, "UNKNOWN_ENVELOPE");
             }
         }
-
-        console.log("end");
         vm.stopBroadcast(); // TODO option to broadcast as we go along
         // TODO return value defined by last envelop (type == 0) (promise value of return)
     }
