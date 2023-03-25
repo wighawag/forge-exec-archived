@@ -6,11 +6,6 @@
   "keywords": [],
   "author": "",
   "main": "index.js",
-  "pnpm": {
-    "patchedDependencies": {
-      "node-ipc@11.1.0": "patches/node-ipc@11.1.0.patch"
-    }
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   }

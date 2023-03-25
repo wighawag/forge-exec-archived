@@ -1,5 +1,6 @@
 import {AbiCoder} from 'ethers';
-import ipc from 'node-ipc';
+import * as ipcModule from '@achrinza/node-ipc';
+const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix issue with cjs
 import {fork} from 'child_process';
 import fs from 'fs';
 

@@ -1,4 +1,4 @@
-import * as ipcModule from 'node-ipc';
+import * as ipcModule from '@achrinza/node-ipc';
 const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix issue with cjs
 import fs from 'node:fs';
 import {EIP1193ProviderWithoutEvents, EIP1193Request, EIP1193TransactionData} from 'eip-1193';
