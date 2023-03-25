@@ -4,13 +4,13 @@ import {fork} from 'child_process';
 import fs from 'fs';
 
 const logPath = '.executor.log'; // `.executor_${process.pid}.log`
-const access = fs.createWriteStream(logPath);
+const access = fs.createWriteStream(logPath, {flags: 'a'});
 const oldStdoutWrite = process.stdout.write.bind(process.stdout);
 // const oldStderrWrite = process.stdout.write.bind(process.stderr);
-if (process.env.FORGE_EXEC_LOGS === '') {
-	process.env.FORGE_EXEC_LOGS = undefined;
+if (process.env.FORGE_EXECUTOR_LOGS === '') {
+	process.env.FORGE_EXECUTOR_LOGS = undefined;
 }
-if (!process.env.FORGE_EXEC_LOGS) {
+if (!process.env.FORGE_EXECUTOR_LOGS) {
 	process.stdout.write = process.stderr.write = access.write.bind(access);
 }
 
@@ -26,7 +26,7 @@ function exitToTest() {
 
 if (args[0] === 'init') {
 	console.log('!!! initialization...');
-	const server = process.env.FORGE_EXEC_LOGS ? fork(args[1]) : fork(args[1], {detached: true, silent: true});
+	const server = process.env.FORGE_EXECUTOR_LOGS ? fork(args[1]) : fork(args[1], {detached: true, silent: true});
 	console.log(`!!! serverPID: ${server.pid}`);
 	server.on('message', (childMessage: {type: string; socket: string}) => {
 		if (childMessage.type === 'acknowledgement') {
@@ -34,7 +34,7 @@ if (args[0] === 'init') {
 			server.send({type: 'init'});
 		} else if (childMessage.type === 'init') {
 			const socketID = childMessage.socket;
-			console.log(`!!! connected to ${socketID} !`);
+			console.log(`!!! init connected to ${socketID} !`);
 			const encoded = AbiCoder.defaultAbiCoder().encode(['string'], [socketID]);
 			// console.log(`!!! ${encoded}`);
 			oldStdoutWrite(encoded);

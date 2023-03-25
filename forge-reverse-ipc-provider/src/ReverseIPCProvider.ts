@@ -8,16 +8,17 @@ const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
 const nanoid = customAlphabet(alphabet, 8);
 
 const logPath = './.ipc.log'; // `.ipc_${process.pid}.log`
-const access = fs.createWriteStream(logPath);
+const access = fs.createWriteStream(logPath, {flags: 'a'});
 // const oldStdoutWrite = process.stdout.write.bind(process.stdout);
 // const oldStderrWrite = process.stdout.write.bind(process.stderr);
-if (process.env.FORGE_EXEC_LOGS === '') {
-	process.env.FORGE_EXEC_LOGS = undefined;
+if (process.env.FORGE_EXEC_PROCESS_LOGS === '') {
+	process.env.FORGE_EXEC_PROCESS_LOGS = undefined;
 }
-if (!process.env.FORGE_EXEC_LOGS) {
+if (!process.env.FORGE_EXEC_PROCESS_LOGS) {
 	process.stdout.write = process.stderr.write = access.write.bind(access);
 }
 console.log(`!!! pid: ${process.pid}`);
+console.time('PROCESS');
 
 export class ReverseIPCProvider {
 	socketID: string;
@@ -82,7 +83,10 @@ export class ReverseIPCProvider {
 			.catch((err) => {
 				console.error(`!!! AN ERROR HAPPEN IN THE SCRIPT`);
 				console.error(`!!! ${err}`);
-				process.exit(1);
+				console.timeEnd('PROCESS');
+				// process.exit(1);
+				// give time to log
+				setTimeout(() => process.exit(1), 100);
 			});
 	}
 
@@ -114,7 +118,9 @@ export class ReverseIPCProvider {
 			ipc.server.emit(this.socket, 'message', request);
 		}
 
-		console.log(`!!! WE ARE DONE...`);
+		// console.log(`!!! WE ARE DONE...`);
+		console.timeEnd('PROCESS');
+		// process.exit();
 		// give time to log
 		setTimeout(() => process.exit(), 100);
 	}
