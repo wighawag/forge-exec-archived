@@ -31,7 +31,7 @@ Exec.exexute('./example.js);
 1. In example.js you ll need to create an IPC server to communicate back with forge. We provide a package to handle that for you. You can simply write code like that:
 
 ```js
-import { execute } from "forge-reverse-ipc-provider/dist/index.js";
+import { execute } from "forge-reverse-ipc-provider";
 
 execute(async (provider) => {
   const response = await provider.request({
