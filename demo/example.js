@@ -1,4 +1,5 @@
-import { execute } from "forge-reverse-ipc-provider/dist/index.js";
+import { execute } from "forge-reverse-ipc-provider";
+// const { execute } = require("forge-reverse-ipc-provider");
 
 execute(async (provider) => {
   const response = await provider.request({

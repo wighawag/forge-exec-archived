@@ -1,11 +1,18 @@
-import ipc from 'node-ipc';
+import * as ipcModule from 'node-ipc';
+const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix issue with cjs
 import fs from 'node:fs';
-import {customAlphabet} from 'nanoid';
 import {EIP1193ProviderWithoutEvents, EIP1193Request, EIP1193TransactionData} from 'eip-1193';
 import {AbiCoder} from 'ethers';
 
-const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
-const nanoid = customAlphabet(alphabet, 8);
+// import {customAlphabet} from 'nanoid';
+// const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
+// const nanoid = customAlphabet(alphabet, 8);
+function nanoid() {
+	var S4 = function () {
+		return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+	};
+	return S4() + S4() + '-' + S4() + '-' + S4() + '-' + S4() + '-' + S4() + S4() + S4();
+}
 
 const logPath = './.ipc.log'; // `.ipc_${process.pid}.log`
 const access = fs.createWriteStream(logPath, {flags: 'a'});

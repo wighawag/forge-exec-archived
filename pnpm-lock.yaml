@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 patchedDependencies:
   node-ipc@11.1.0:
-    hash: 3ojxb5d7tpfwbzjrbax4w35xyy
+    hash: owvd2oodrpkp3iflaumz4x3oju
     path: patches/node-ipc@11.1.0.patch
 
 importers:
@@ -30,7 +30,7 @@ importers:
       ethers: 6.2.2
       named-logs: 0.2.2
       nanoid: 4.0.1
-      node-ipc: 11.1.0_3ojxb5d7tpfwbzjrbax4w35xyy
+      node-ipc: 11.1.0_owvd2oodrpkp3iflaumz4x3oju
     devDependencies:
       '@types/node': 18.15.9
       eip-1193: 0.2.4
@@ -757,7 +757,7 @@ packages:
     hasBin: true
     dev: false
 
-  /node-ipc/11.1.0_3ojxb5d7tpfwbzjrbax4w35xyy:
+  /node-ipc/11.1.0_owvd2oodrpkp3iflaumz4x3oju:
     resolution: {integrity: sha512-BfE098Uyx06O//uatDNbSNxa5HLejwd2gV33yU0VfYv5wm4e22Um3VnNTOacqSxcl02v4fx6ZNUqJG9ZK+0Ufg==}
     engines: {node: '>=14'}
     dependencies:

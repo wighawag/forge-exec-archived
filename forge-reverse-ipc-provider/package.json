@@ -5,11 +5,17 @@
 	"keywords": [],
 	"author": "",
 	"type": "module",
-	"main": "dist/index.js",
-	"module": "dist/index.js",
-	"types": "dist/index.d.ts",
+	"types": "dist/esm/index.d.ts",
+	"main": "dist/cjs/index.cjs",
+	"module": "dist/esm/index.js",
+	"exports": {
+		".": {
+			"import": "./dist/esm/index.js",
+			"require": "./dist/cjs/index.cjs"
+		}
+	},
 	"bin": {
-		"forge-1193": "dist/index.js"
+		"forge-1193": "dist/esm/index.js"
 	},
 	"devDependencies": {
 		"@types/node": "^18.15.7",
@@ -24,6 +30,8 @@
 		"node-ipc": "^11.1.0"
 	},
 	"scripts": {
-		"build": "tsup-node --entry src/index.ts --entry src/executor.ts --dts --format esm,cjs"
+		"build:esm": "tsup-node --entry src/index.ts --entry src/executor.ts --dts --out-dir dist/esm --format esm",
+		"build:cjs": "tsup-node --entry src/index.ts --entry src/executor.ts --dts --out-dir dist/cjs --format cjs",
+		"build": "pnpm run build:esm && pnpm run build:cjs"
 	}
 }

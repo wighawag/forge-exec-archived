@@ -74,7 +74,9 @@ library Exec {
         string[] memory inputs = new string[](5);
         inputs[0] = "node";
         inputs[1] = "--no-warnings";
-        inputs[2] = "node_modules/forge-reverse-ipc-provider/dist/executor.js";
+        inputs[
+            2
+        ] = "node_modules/forge-reverse-ipc-provider/dist/esm/executor.js";
         inputs[3] = "init";
         inputs[4] = jsmodule;
         return vm.ffi(inputs);
@@ -87,7 +89,9 @@ library Exec {
         string[] memory inputs = new string[](6);
         inputs[0] = "node";
         inputs[1] = "--no-warnings";
-        inputs[2] = "node_modules/forge-reverse-ipc-provider/dist/executor.js";
+        inputs[
+            2
+        ] = "node_modules/forge-reverse-ipc-provider/dist/esm/executor.js";
         inputs[3] = "terminate";
         inputs[4] = id;
         inputs[5] = errorMessage;
@@ -103,7 +107,9 @@ library Exec {
         string[] memory inputs = new string[](6);
         inputs[0] = "node";
         inputs[1] = "--no-warnings";
-        inputs[2] = "node_modules/forge-reverse-ipc-provider/dist/executor.js";
+        inputs[
+            2
+        ] = "node_modules/forge-reverse-ipc-provider/dist/esm/executor.js";
         inputs[3] = "exec";
         inputs[4] = id;
         inputs[5] = value;
