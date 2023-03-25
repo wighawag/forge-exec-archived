@@ -1,11 +1,11 @@
-# <h1 align="center"> forge-package </h1>
+# <h1 align="center"> forge-exec </h1>
 
-**Say gm from Solidity scripts/tests**
+**Execute program using a reverse IPC service from Solidity scripts/tests**
 
 ## Installation
 
 ```
-forge install wighawag/forge-package
+forge install wighawag/forge-exec
 ```
 
 ## Usage
@@ -13,20 +13,20 @@ forge install wighawag/forge-package
 1. Add this import to your script or test:
 
 ```solidity
-import {GM} from "forge-package/GM.sol";
+import {Exec} from "forge-exec/Exec.sol";
 ```
 
-1. Make your requests:
+1. Execute an external script:
 
 ```solidity
-(string memory data) = GM.gm();
+(string memory data) = Exec.exexute();
 ```
 
 4. You must enable [ffi](https://book.getfoundry.sh/cheatcodes/ffi.html) in order to use the library. You can either pass the `--ffi` flag to any forge commands you run (e.g. `forge script Script --ffi`), or you can add `ffi = true` to your `foundry.toml` file.
 
 ## Example
 
-We have example usage for both [tests](./test/GM.t.sol) and [scripts](./script/).
+We have example usage for both [tests](./test/Exec.t.sol) and [scripts](./script/ExecDemo.s.sol).
 
 ## Contributing
 
@@ -44,7 +44,7 @@ forge test
 
 ## Why?
 
-[Forge scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) is becoming more popular. With GM you can say gm.
+[Forge scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) is becoming more popular. With forge-exec you can run script to deploy contracts and more
 
 ## Development
 

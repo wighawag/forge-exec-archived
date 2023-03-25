@@ -2,13 +2,13 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {GM} from "src/GM.sol";
+import {Exec} from "src/Exec.sol";
 
-contract GMGetScript is Script {
+contract ExecDemoScript is Script {
     function setUp() public {}
 
     function run() public {
-        string memory data = GM.gm();
+        string memory data = Exec.execute();
         console.log("msg", data);
     }
 }

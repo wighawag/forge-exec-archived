@@ -3,11 +3,11 @@ pragma solidity ^0.8.13;
 
 import {Vm} from "forge-std/Vm.sol";
 
-library GM {
+library Exec {
     Vm constant vm =
         Vm(address(bytes20(uint160(uint256(keccak256("hevm cheat code"))))));
 
-    function gm() internal returns (string memory data) {
+    function execute() internal returns (string memory data) {
         string[] memory inputs = new string[](2);
         inputs[0] = "echo";
         inputs[
