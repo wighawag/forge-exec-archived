@@ -20,4 +20,14 @@ contract ExecTest is Test {
         bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
         assert(code.length > 0);
     }
+
+    function testDeplymentAgainAndAgain() public view {
+        bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
+        assert(code.length > 0);
+    }
+
+    function testDeplymentAgainAndAgainAndAgain() public view {
+        bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
+        assert(code.length > 0);
+    }
 }
