@@ -27,24 +27,19 @@ function exitToTest() {
 
 if (args[0] === 'init') {
 	console.log('!!! initialization...');
-	const server = process.env.FORGE_EXECUTOR_LOGS ? fork(args[1]) : fork(args[1], {detached: true, silent: true});
+	const socketID = 'world'; // TODO random
+	const server = process.env.FORGE_EXECUTOR_LOGS
+		? fork(args[1], [socketID])
+		: fork(args[1], [socketID], {detached: true, silent: true});
 	console.log(`!!! serverPID: ${server.pid}`);
-	server.on('message', (childMessage: {type: string; socket: string}) => {
-		if (childMessage.type === 'acknowledgement') {
-			// console.log(`!!! fork acknowledged`);
-			server.send({type: 'init'});
-		} else if (childMessage.type === 'init') {
-			const socketID = childMessage.socket;
-			console.log(`!!! init connected to ${socketID} !`);
-			const encoded = AbiCoder.defaultAbiCoder().encode(['string'], [socketID]);
-			// console.log(`!!! ${encoded}`);
-			oldStdoutWrite(encoded);
-			// console.log(`!!! exiting...`);
-			process.exit();
-		}
-	});
+	const encoded = AbiCoder.defaultAbiCoder().encode(['string'], [socketID]);
+	// console.log(`!!! ${encoded}`);
+	oldStdoutWrite(encoded);
+	// console.log(`!!! exiting...`);
+	process.exit();
 } else {
-	ipc.config.logger = () => {};
+	ipc.config.logger = (...args) => console.log(`!!!EXECUTOR`, ...args);
+	// ipc.config.logger = () => {};
 	ipc.config.id = 'executor';
 	ipc.config.retry = 1500;
 	ipc.config.delimiter = '\n';

@@ -20,24 +20,31 @@ export class ReverseIPCProvider {
 	socket: any;
 	resolve: ((response: any) => void) | undefined;
 
-	constructor(protected script: (provider: EIP1193ProviderWithoutEvents) => Promise<void>) {
-		console.log(`!!! WORLD`);
-		this.socketID = 'world'; // TODO generate unique ID
-		console.log(`!!! socketID: ${this.socketID}`);
+	constructor(protected script: (provider: EIP1193ProviderWithoutEvents) => Promise<void>, socketID: string) {
+		this.socketID = socketID;
 	}
 
 	serve() {
 		setInterval(() => console.log(`!!! pid: ${process.pid}`), 20000);
 
-		// ipc.config.logger = (...args) => console.log(`!!!IPC`, ...args);
-		ipc.config.logger = () => {};
+		ipc.config.logger = (...args) => console.log(`!!!IPC`, ...args);
+		// ipc.config.logger = () => {};
 		ipc.config.id = this.socketID;
 		ipc.config.retry = 1500;
 		ipc.config.delimiter = '\n';
 
-		ipc.serve(this.onServing.bind(this));
-		process.send({type: 'acknowledgement'});
-		process.on('message', this.onProcessMessage.bind(this));
+		try {
+			ipc.serve(this.onServing.bind(this));
+			ipc.server.start();
+		} catch (err) {
+			console.log(`!!!IPC ERROR`, err);
+			process.exit(1);
+		}
+
+		ipc.server.on('error', (err) => {
+			console.log(`!!!IPC ERROR`, err);
+			process.exit(1);
+		});
 	}
 
 	onServing() {
@@ -59,15 +66,6 @@ export class ReverseIPCProvider {
 		// ipc.server.on('data', function (a, b) {
 		// 	console.log('!!! data ', a, b);
 		// });
-	}
-
-	onProcessMessage(parentMessage) {
-		console.log(`!!! log messages from parent: ${JSON.stringify(parentMessage)}`);
-		const {type} = parentMessage;
-		if (type === 'init') {
-			ipc.server.start();
-			process.send({type: 'init', socket: this.socketID});
-		}
 	}
 
 	executeScript() {

@@ -12,3 +12,5 @@ authors = ["Ronan Sandford"]
 
 [dependencies]
  interprocess = { path = "lib/interprocess" }
+ ethabi = "18.0.0"
+ hex = "0.4.3"
