@@ -29,9 +29,11 @@ export class ReverseIPCProvider {
 	serve() {
 		setInterval(() => console.log(`!!! pid: ${process.pid}`), 20000);
 
+		// ipc.config.logger = (...args) => console.log(`!!!IPC`, ...args);
 		ipc.config.logger = () => {};
 		ipc.config.id = this.socketID;
 		ipc.config.retry = 1500;
+		ipc.config.delimiter = '\n';
 
 		ipc.serve(this.onServing.bind(this));
 		process.send({type: 'acknowledgement'});
@@ -60,7 +62,7 @@ export class ReverseIPCProvider {
 	}
 
 	onProcessMessage(parentMessage) {
-		console.log(`!!! log messages from parent: ${parentMessage}`);
+		console.log(`!!! log messages from parent: ${JSON.stringify(parentMessage)}`);
 		const {type} = parentMessage;
 		if (type === 'init') {
 			ipc.server.start();

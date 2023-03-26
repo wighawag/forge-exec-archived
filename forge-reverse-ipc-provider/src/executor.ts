@@ -47,6 +47,7 @@ if (args[0] === 'init') {
 	ipc.config.logger = () => {};
 	ipc.config.id = 'executor';
 	ipc.config.retry = 1500;
+	ipc.config.delimiter = '\n';
 
 	const ipcSocket = args[1];
 
