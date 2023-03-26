@@ -1,0 +1,14 @@
+[package]
+name = "forge-ipc-client"
+version = "0.1.0"
+edition = "2021"
+description = "ipc client that let forge to connect to an ipc server while executing solidity"
+repository = "https://github.com/wighawag/forge-exec"
+readme = "README.md"
+keywords = ["forge", "foundry", "ipc", "client"]
+license = "MIT"
+homepage = "https://github.com/wighawag/forge-exec/forge-ipc-client"
+authors = ["Ronan Sandford"]
+
+[dependencies]
+ interprocess = { path = "lib/interprocess" }
