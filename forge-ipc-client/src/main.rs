@@ -1,15 +1,47 @@
-// fn main() {
-//     println!("Hello, world!");
-    
-// }
-
-use interprocess::local_socket::{LocalSocketStream, NameTypeSupport};
 
 use std::io::{prelude::*, BufReader};
 use std::error::Error;
+use std::env;
+
+use std::process::Command;
+
+use interprocess::local_socket::{LocalSocketStream, NameTypeSupport};
+
+
 
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("Hello, world!");
+
+let args: Vec<String> = env::args().collect();
+let command = &args[1];
+let command_data = &args[2];
+println!("Hello, world! {} {}", command, command_data);
+
+// if let Ok(Fork::Child) = daemon(false, false) {
+//     Command::new("node")
+//         .arg("../demo/example.js")
+//         .output()
+//         .expect("failed to execute process");
+// }
+
+// let output = Command::new("echo")
+//                      .arg("Hello world")
+//                      .output()
+//                      .expect("Failed to execute command");
+
+
+let child = Command::new("bash")
+    .args(["-c", "sleep 3s; echo hello!"])
+    .spawn()
+    .expect("failed to execute child");
+
+// let child = Command::new("node")
+//     .args(["../demo/example.js"])
+//     .spawn()
+//     .expect("failed to execute child");
+
+
+println!("Hello child! {}", child.id());
+
 // Pick a name. There isn't a helper function for this, mostly because it's largely unnecessary:
 // in Rust, `match` is your concise, readable and expressive decision making construct.
 let name = {
