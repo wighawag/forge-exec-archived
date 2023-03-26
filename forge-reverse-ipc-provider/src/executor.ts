@@ -47,7 +47,7 @@ if (args[0] === 'init') {
 	console.log(`!!! serverPID: ${server.pid}`);
 	const encoded = AbiCoder.defaultAbiCoder().encode(['string'], [socketID]);
 	// console.log(`!!! ${encoded}`);
-	oldStdoutWrite(encoded);
+
 	let exiting = false;
 	function connectAndExit() {
 		const {id} = socketComponents(socketID);
@@ -55,10 +55,16 @@ if (args[0] === 'init') {
 		// ipc.config.id = clientID;
 		ipc.config.retry = 1500;
 		ipc.config.delimiter = '\n';
+		ipc.config.rawBuffer = true;
+
 		ipc.connectTo(id, socketID, function () {
 			ipc.of[id].on('connect', function () {
-				console.log(`!!! connected to ${socketID}`);
+				console.log(`!!! FIRST CONNECT to ${socketID}`);
 				exiting = true;
+				oldStdoutWrite(encoded);
+				// setTimeout(() => {
+				// 	process.exit();
+				// }, 100);
 				process.exit();
 			});
 			ipc.of[id].on('disconnect', function () {
@@ -76,6 +82,7 @@ if (args[0] === 'init') {
 	ipc.config.id = 'executor';
 	ipc.config.retry = 1500;
 	ipc.config.delimiter = '\n';
+	ipc.config.rawBuffer = true;
 
 	const socketID = args[1];
 	const {id} = socketComponents(socketID);
@@ -85,16 +92,17 @@ if (args[0] === 'init') {
 		ipc.connectTo(id, socketID, function () {
 			ipc.of[id].on('connect', function () {
 				console.log(`!!! connected to ${socketID}`);
-				ipc.of[id].emit('message', {type: 'response', data: args[2]});
+				ipc.of[id].emit(args[2]);
 			});
 			ipc.of[id].on('disconnect', function () {
 				// console.log(`!!! disconnected`);
 				// console.error('!!! disconnected from world');
 				process.exit(0);
 			});
-			ipc.of[id].on('message', function (encoded) {
-				// console.log(`!!! sending encoded data: ${JSON.stringify(encoded)}`);
-				oldStdoutWrite(encoded);
+			ipc.of[id].on('data', function (encoded) {
+				const data = encoded.toString('utf8');
+				console.log(`!!! writing encoded data: ${data}`);
+				oldStdoutWrite(data);
 				// console.log(`!!! exiting...`);
 				process.exit();
 			});
@@ -102,7 +110,7 @@ if (args[0] === 'init') {
 	} else if (args[0] === 'terminate') {
 		ipc.connectTo(id, socketID, function () {
 			ipc.of[id].on('connect', function () {
-				ipc.of[id].emit('message', {type: 'terminate', error: args[2]});
+				ipc.of[id].emit(`terminate:${args[2]}`);
 				oldStdoutWrite('0x');
 				process.exit();
 			});

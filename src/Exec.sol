@@ -13,7 +13,7 @@ library Exec {
         bytes memory init = init1193(jsModule);
         string memory processID = abi.decode(init, (string));
 
-        string memory response;
+        string memory response = "0x"; // the first response
         while (true) {
             bytes memory request = call1193(processID, response);
 

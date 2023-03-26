@@ -31,6 +31,7 @@ export class ReverseIPCProvider {
 		// ipc.config.logger = () => {};
 		ipc.config.retry = 1500;
 		ipc.config.delimiter = '\n';
+		ipc.config.rawBuffer = true;
 
 		try {
 			ipc.serve(this.socketID, this.onServing.bind(this));
@@ -48,7 +49,7 @@ export class ReverseIPCProvider {
 
 	onServing() {
 		console.log(`!!! serving...`);
-		ipc.server.on('message', this.onMessage.bind(this));
+		ipc.server.on('data', this.onMessage.bind(this));
 
 		// ipc.server.on('socket.disconnected', function (destroyedSocketID) {
 		// 	console.log('!!! client ' + destroyedSocketID + ' has disconnected!');
@@ -86,30 +87,32 @@ export class ReverseIPCProvider {
 
 	onMessage(response, socket) {
 		this.socket = socket;
-		console.log(`!!! MESSAGE from client`, response);
+		const data = response.toString('utf8');
 
-		if (response.type === 'terminate') {
-			console.error(`!!! ${response.error}`);
+		console.log(`!!! MESSAGE from client`);
+
+		if (data.startsWith('terminate:')) {
+			console.error(`!!! ${data.slice(10)}`);
 			process.exit(1);
-		} else if (response.type === 'response') {
+		} else if (data.startsWith('0x')) {
 			if (!this.resolve) {
 				this.executeScript();
 				// console.error(`!!! ERRRO no request to resolve`);
 				// must be the first message, we can execute
 			} else {
 				console.error('!!! RESOLVING PREVIOUS REQUEST');
-				this.resolve(response.data);
+				this.resolve(data);
 				this.resolve = undefined;
 			}
 		} else {
-			console.error('!!! invalid responsee');
+			console.error(`!!! invalid response, need to start with "terminate", or "0x": ${data}`);
 		}
 	}
 
 	stop() {
 		if (this.socket) {
 			const request = AbiCoder.defaultAbiCoder().encode(['uint256', 'bytes'], [0, '0x']);
-			ipc.server.emit(this.socket, 'message', request);
+			ipc.server.emit(this.socket, request);
 		}
 
 		// console.log(`!!! WE ARE DONE...`);
@@ -135,7 +138,7 @@ export class ReverseIPCProvider {
 				['uint256', 'bytes'],
 				[encodedRequest.type, encodedRequest.data]
 			);
-			ipc.server.emit(this.socket, 'message', withEnvelope);
+			ipc.server.emit(this.socket, withEnvelope);
 		});
 		return promise;
 	}
