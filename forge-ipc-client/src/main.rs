@@ -10,6 +10,7 @@ use hex;
 use interprocess::local_socket::{LocalSocketStream, NameTypeSupport};
 
 fn connect<'a>(name: &str, retry: u32) -> LocalSocketStream {
+    println!("connecting to {}", name);
     let connection_attempt = LocalSocketStream::connect(name);
     let conn = match connection_attempt {
         Ok(conn) => conn,
@@ -24,6 +25,32 @@ fn connect<'a>(name: &str, retry: u32) -> LocalSocketStream {
         }
     };
     return conn;
+}
+
+fn connect_and_send(name: &str, retry: u32, messageBuffer: &[u8]) -> Result<String, Box<dyn Error>>{
+    
+    // Preemptively allocate a sizeable buffer for reading.
+    // This size should be enough and should be easy to find for the allocator.
+    let mut buffer = String::with_capacity(128);
+
+    let conn = connect(name, 3);
+
+    // Wrap it into a buffered reader right away so that we could read a single line out of it.
+    let mut conn = BufReader::new(conn);
+
+    // Write our message into the stream. This will finish either when the whole message has been
+    // writen or if a write operation returns an error. (`.get_mut()` is to get the writer,
+    // `BufReader` doesn't implement a pass-through `Write`.)
+    // conn.get_mut().write_all(b"{\"type\":\"message\",\"data\":{\"type\":\"response\",\"data\":\"0xFF\"}}\n")?; // \f = \x0c
+
+    conn.get_mut().write_all(messageBuffer)?; // \f = \x0c
+
+    // // We now employ the buffer we allocated prior and read a single line, interpreting a newline
+    // // character as an end-of-file (because local sockets cannot be portably shut down), verifying
+    // // validity of UTF-8 on the fly.
+    conn.read_line(&mut buffer)?;
+
+    return Ok(buffer);
 }
 
 
@@ -59,59 +86,15 @@ if command.eq("init") {
 } else {
     let name = args[2].as_str();
     if command.eq("exec") {
-        println!("connecting to {}", name);
-        // Preemptively allocate a sizeable buffer for reading.
-        // This size should be enough and should be easy to find for the allocator.
-        let mut buffer = String::with_capacity(128);
-
-        let conn = connect(name, 3);
-
-        // Wrap it into a buffered reader right away so that we could read a single line out of it.
-        let mut conn = BufReader::new(conn);
-
-        // Write our message into the stream. This will finish either when the whole message has been
-        // writen or if a write operation returns an error. (`.get_mut()` is to get the writer,
-        // `BufReader` doesn't implement a pass-through `Write`.)
-        // conn.get_mut().write_all(b"{\"type\":\"message\",\"data\":{\"type\":\"response\",\"data\":\"0xFF\"}}\n")?; // \f = \x0c
-
-        conn.get_mut().write_all(b"{\"type\":\"message\",\"data\":{\"type\":\"terminate\",\"error\":\"Terminate Now!\"}}\n")?; // \f = \x0c
-
-        // // We now employ the buffer we allocated prior and read a single line, interpreting a newline
-        // // character as an end-of-file (because local sockets cannot be portably shut down), verifying
-        // // validity of UTF-8 on the fly.
-        conn.read_line(&mut buffer)?;
-
+        let buffer = connect_and_send(name, 3,b"{\"type\":\"message\",\"data\":{\"type\":\"response\",\"data\":\"0xFF\"}}\n")?;
         // // Print out the result, getting the newline for free!
         print!("Server answered: {buffer}");
-
     } else if command.eq("terminate") {
-        println!("connecting to {}", name);
-        // Preemptively allocate a sizeable buffer for reading.
-        // This size should be enough and should be easy to find for the allocator.
-        let mut buffer = String::with_capacity(128);
-
-        let conn = connect(name, 3);
-
-        // Wrap it into a buffered reader right away so that we could read a single line out of it.
-        let mut conn = BufReader::new(conn);
-
-        // Write our message into the stream. This will finish either when the whole message has been
-        // writen or if a write operation returns an error. (`.get_mut()` is to get the writer,
-        // `BufReader` doesn't implement a pass-through `Write`.)
-        // conn.get_mut().write_all(b"{\"type\":\"message\",\"data\":{\"type\":\"response\",\"data\":\"0xFF\"}}\n")?; // \f = \x0c
-
-        conn.get_mut().write_all(b"{\"type\":\"message\",\"data\":{\"type\":\"terminate\",\"error\":\"Terminate Now!\"}}\n")?; // \f = \x0c
-
-        // // We now employ the buffer we allocated prior and read a single line, interpreting a newline
-        // // character as an end-of-file (because local sockets cannot be portably shut down), verifying
-        // // validity of UTF-8 on the fly.
-        conn.read_line(&mut buffer)?;
-
+        let buffer = connect_and_send(name, 3,b"{\"type\":\"message\",\"data\":{\"type\":\"terminate\",\"error\":\"Terminate Now!\"}}\n")?;
         // // Print out the result, getting the newline for free!
         print!("Server answered: {buffer}");
     }
 }
-
 
 Ok(())
 }
