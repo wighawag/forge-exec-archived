@@ -34,5 +34,5 @@ execute(async (provider) => {
       ],
     }),
   ];
-  console.log({ results });
+  console.log({ results: results.join(",") });
 });

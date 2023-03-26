@@ -10,6 +10,7 @@ library Exec {
     function execute(string memory jsModule) internal {
         vm.startBroadcast();
 
+        // ./forge-ipc-client init node ./example.js && ./forge-ipc-client exec /tmp/app.world 0x && ./forge-ipc-client exec /tmp/app.world 0xFF && ./forge-ipc-client exec /tmp/app.world 0xFF && ./forge-ipc-client exec /tmp/app.world 0xFF
         bytes memory init = init1193(jsModule);
         string memory processID = abi.decode(init, (string));
 
@@ -58,49 +59,12 @@ library Exec {
     // --------------------------------------------------------------------------------------------
     // private
     // --------------------------------------------------------------------------------------------
-    function init1193(string memory jsmodule) private returns (bytes memory) {
-        string[] memory inputs = new string[](4);
-        inputs[0] = "npx";
-        inputs[1] = "forge-exec";
-        inputs[2] = "init";
-        inputs[3] = jsmodule;
-        return vm.ffi(inputs);
-    }
-
-    function terminate1193(
-        string memory id,
-        string memory errorMessage
-    ) private {
-        string[] memory inputs = new string[](5);
-        inputs[0] = "npx";
-        inputs[1] = "forge-exec";
-        inputs[2] = "terminate";
-        inputs[3] = id;
-        inputs[4] = errorMessage;
-
-        vm.ffi(inputs);
-        revert(errorMessage);
-    }
-
-    function call1193(
-        string memory id,
-        string memory value
-    ) private returns (bytes memory) {
-        string[] memory inputs = new string[](5);
-        inputs[0] = "npx";
-        inputs[1] = "forge-exec";
-        inputs[2] = "exec";
-        inputs[3] = id;
-        inputs[4] = value;
-
-        return vm.ffi(inputs);
-    }
-
-    //  function init1193(string memory jsmodule) private returns (bytes memory) {
-    //     string[] memory inputs = new string[](3);
-    //     inputs[0] = "./forge-ipc-client";
-    //     inputs[1] = "init";
-    //     inputs[2] = jsmodule;
+    // function init1193(string memory jsmodule) private returns (bytes memory) {
+    //     string[] memory inputs = new string[](4);
+    //     inputs[0] = "npx";
+    //     inputs[1] = "forge-exec";
+    //     inputs[2] = "init";
+    //     inputs[3] = jsmodule;
     //     return vm.ffi(inputs);
     // }
 
@@ -108,11 +72,12 @@ library Exec {
     //     string memory id,
     //     string memory errorMessage
     // ) private {
-    //     string[] memory inputs = new string[](4);
-    //     inputs[0] = "./forge-ipc-client";
-    //     inputs[1] = "terminate";
-    //     inputs[2] = id;
-    //     inputs[3] = errorMessage;
+    //     string[] memory inputs = new string[](5);
+    //     inputs[0] = "npx";
+    //     inputs[1] = "forge-exec";
+    //     inputs[2] = "terminate";
+    //     inputs[3] = id;
+    //     inputs[4] = errorMessage;
 
     //     vm.ffi(inputs);
     //     revert(errorMessage);
@@ -122,12 +87,49 @@ library Exec {
     //     string memory id,
     //     string memory value
     // ) private returns (bytes memory) {
-    //     string[] memory inputs = new string[](4);
-    //     inputs[0] = "./forge-ipc-client";
-    //     inputs[1] = "exec";
-    //     inputs[2] = id;
-    //     inputs[3] = value;
+    //     string[] memory inputs = new string[](5);
+    //     inputs[0] = "npx";
+    //     inputs[1] = "forge-exec";
+    //     inputs[2] = "exec";
+    //     inputs[3] = id;
+    //     inputs[4] = value;
 
     //     return vm.ffi(inputs);
     // }
+
+    function init1193(string memory jsmodule) private returns (bytes memory) {
+        string[] memory inputs = new string[](4);
+        inputs[0] = "./forge-ipc-client";
+        inputs[1] = "init";
+        inputs[2] = "node";
+        inputs[3] = jsmodule;
+        return vm.ffi(inputs);
+    }
+
+    function terminate1193(
+        string memory id,
+        string memory errorMessage
+    ) private {
+        string[] memory inputs = new string[](4);
+        inputs[0] = "./forge-ipc-client";
+        inputs[1] = "terminate";
+        inputs[2] = id;
+        inputs[3] = errorMessage;
+
+        vm.ffi(inputs);
+        revert(errorMessage);
+    }
+
+    function call1193(
+        string memory id,
+        string memory value
+    ) private returns (bytes memory) {
+        string[] memory inputs = new string[](4);
+        inputs[0] = "./forge-ipc-client";
+        inputs[1] = "exec";
+        inputs[2] = id;
+        inputs[3] = value;
+
+        return vm.ffi(inputs);
+    }
 }

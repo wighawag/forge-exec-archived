@@ -92,7 +92,7 @@ if (args[0] === 'init') {
 		ipc.connectTo(id, socketID, function () {
 			ipc.of[id].on('connect', function () {
 				console.log(`!!! connected to ${socketID}`);
-				ipc.of[id].emit(args[2]);
+				ipc.of[id].emit(args[2] + `\n`);
 			});
 			ipc.of[id].on('disconnect', function () {
 				// console.log(`!!! disconnected`);
@@ -100,7 +100,7 @@ if (args[0] === 'init') {
 				process.exit(0);
 			});
 			ipc.of[id].on('data', function (encoded) {
-				const data = encoded.toString('utf8');
+				const data = encoded.toString('utf8').slice(0, -1);
 				console.log(`!!! writing encoded data: ${data}`);
 				oldStdoutWrite(data);
 				// console.log(`!!! exiting...`);
@@ -110,7 +110,7 @@ if (args[0] === 'init') {
 	} else if (args[0] === 'terminate') {
 		ipc.connectTo(id, socketID, function () {
 			ipc.of[id].on('connect', function () {
-				ipc.of[id].emit(`terminate:${args[2]}`);
+				ipc.of[id].emit(`terminate:${args[2]}` + `\n`);
 				oldStdoutWrite('0x');
 				process.exit();
 			});

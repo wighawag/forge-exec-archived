@@ -50,22 +50,6 @@ export class ReverseIPCProvider {
 	onServing() {
 		console.log(`!!! serving...`);
 		ipc.server.on('data', this.onMessage.bind(this));
-
-		// ipc.server.on('socket.disconnected', function (destroyedSocketID) {
-		// 	console.log('!!! client ' + destroyedSocketID + ' has disconnected!');
-		// });
-		// ipc.server.on('destroy', function (a, b) {
-		// 	console.log('!!! destroyed ', a, b);
-		// });
-		// ipc.server.on('error', function (a, b) {
-		// 	console.error('!!! error ', a, b);
-		// });
-		// ipc.server.on('disconnect', function (a, b) {
-		// 	console.log('!!! disconnect ', a, b);
-		// });
-		// ipc.server.on('data', function (a, b) {
-		// 	console.log('!!! data ', a, b);
-		// });
 	}
 
 	executeScript() {
@@ -87,7 +71,7 @@ export class ReverseIPCProvider {
 
 	onMessage(response, socket) {
 		this.socket = socket;
-		const data = response.toString('utf8');
+		const data = response.toString('utf8').slice(0, -1);
 
 		console.log(`!!! MESSAGE from client`);
 
@@ -112,7 +96,7 @@ export class ReverseIPCProvider {
 	stop() {
 		if (this.socket) {
 			const request = AbiCoder.defaultAbiCoder().encode(['uint256', 'bytes'], [0, '0x']);
-			ipc.server.emit(this.socket, request);
+			ipc.server.emit(this.socket, request + `\n`);
 		}
 
 		// console.log(`!!! WE ARE DONE...`);
@@ -138,7 +122,7 @@ export class ReverseIPCProvider {
 				['uint256', 'bytes'],
 				[encodedRequest.type, encodedRequest.data]
 			);
-			ipc.server.emit(this.socket, withEnvelope);
+			ipc.server.emit(this.socket, withEnvelope + `\n`);
 		});
 		return promise;
 	}

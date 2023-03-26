@@ -1,17 +1,17 @@
 
 use std::io::{prelude::*, BufReader};
+use std::fs::OpenOptions;
 use std::error::Error;
-use std::env;
-use std::process::Command;
+use std::{env, str};
+use std::process::{Command, Stdio};
 use std::{thread, time};
-use std::str;
 use ethabi::{encode, Token};
 use hex;
 
 use interprocess::local_socket::{LocalSocketStream, NameTypeSupport};
 
 fn connect<'a>(name: &str, retry: u32, retry_interval: u64) -> LocalSocketStream {
-    println!("connecting to {}", name);
+    // println!("connecting to {}", name);
     let connection_attempt = LocalSocketStream::connect(name);
     let conn = match connection_attempt {
         Ok(conn) => conn,
@@ -21,7 +21,7 @@ fn connect<'a>(name: &str, retry: u32, retry_interval: u64) -> LocalSocketStream
                 panic!("Failed to connect: {:?}", error);
             }
             thread::sleep(time::Duration::from_millis(retry_interval));
-            println!("retrying...");
+            // println!("retrying...");
             return connect(name, retry -1, retry_interval);
         }
     };
@@ -29,92 +29,97 @@ fn connect<'a>(name: &str, retry: u32, retry_interval: u64) -> LocalSocketStream
 }
 
 fn connect_and_send(name: &str, retry: u32, retry_interval: u64, message_buffer: &[u8]) -> Result<String, Box<dyn Error>>{
-    
-    // Preemptively allocate a sizeable buffer for reading.
-    // This size should be enough and should be easy to find for the allocator.
     let mut buffer = String::with_capacity(128);
 
     let conn = connect(name, retry, retry_interval);
-
     // Wrap it into a buffered reader right away so that we could read a single line out of it.
     let mut conn = BufReader::new(conn);
 
-    // Write our message into the stream. This will finish either when the whole message has been
-    // writen or if a write operation returns an error. (`.get_mut()` is to get the writer,
-    // `BufReader` doesn't implement a pass-through `Write`.)
-
     conn.get_mut().write_all(message_buffer)?;
+    conn.get_mut().write_all(b"\n")?;
 
-    // // We now employ the buffer we allocated prior and read a single line, interpreting a newline
-    // // character as an end-of-file (because local sockets cannot be portably shut down), verifying
-    // // validity of UTF-8 on the fly.
+    
     conn.read_line(&mut buffer)?;
 
-    return Ok(buffer);
+    let mut str = buffer.chars();
+    str.next_back();
+    return Ok(String::from(str.as_str()));
 }
 
 
 fn main() -> Result<(), Box<dyn Error>> {
+let mut file = OpenOptions::new()
+.append(true)
+.open(".rust-executor.log")
+.unwrap();
 
+    
 let args: Vec<String> = env::args().collect();
 let command = &args[1];
 
+writeln!(file, "{}", args.join(","))?;
 
 if command.eq("init") {
-    // Pick a name. There isn't a helper function for this, mostly because it's largely unnecessary:
-    // in Rust, `match` is your concise, readable and expressive decision making construct.
+    
     let name = {
-        // This scoping trick allows us to nicely contain the import inside the `match`, so that if
-        // any imports of variants named `Both` happen down the line, they won't collide with the
-        // enum we're working with here. Maybe someone should make a macro for this.
         use NameTypeSupport::*;
         match NameTypeSupport::query() {
             OnlyPaths | Both => "/tmp/app.world",
             OnlyNamespaced => "@app.world",
         }
-    };
+    }.to_string();
 
-    let child = Command::new("node")
-    .args(["../demo/example.js", name])
+    let program = &args[2];
+    let mut program_args = Vec::with_capacity(args[3 .. ].len() + 1);
+    for i in 3..args.len() {
+        program_args.push(&args[i]);
+    }
+    program_args.push(&name);
+
+    writeln!(file, "spawn {}", program)?;
+
+    let child = Command::new(program)
+        // .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+    .args(program_args)
     .spawn()
+
     .expect("failed to execute child");
+
+    writeln!(file, "child PID {}", child.id())?;
 
     // we attempt to connect, we retry 300 times with an interval of 10ms
     // the process has 3 seconds to establish an IPC server
     // this is plenty of time
-    connect(name, 300, 10);
+    connect(&name, 300, 10);
 
-    // we could use standard output to let the ipc server give us the name,
-    // this is not ideal as standard output can be easily poluted
-    // let mut buffer = [0; 12];
-    // let mut stdout = child.stdout.take().unwrap();
-    // stdout.read(&mut buffer)?; // only read 12 bytes 
+    writeln!(file, "connected!")?;
     
-    // let s = match str::from_utf8(&buffer) {
-    //     Ok(v) => v,
-    //     Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-    // };    
-    // println!("from socket: {}", s);
-    
-    println!("Hello child! {}", child.id());
-    print!("{}", hex::encode(encode(&[Token::String(String::from(name))])));
+    print!("0x{}", hex::encode(encode(&[Token::String(String::from(name))])));
 
+    writeln!(file,"------------------ INIT ------------------")?;
 } else {
     let name = args[2].as_str();
     if command.eq("exec") {
-        // TODO
-        // let data = args[3].as_str();
-        let buffer = connect_and_send(name, 1, 10, b"{\"type\":\"message\",\"data\":{\"type\":\"response\",\"data\":\"0xFF\"}}\n")?;
-        
-        // // Print out the result, getting the newline for free!
-        print!("Server answered: {buffer}");
+        let data = args[3].as_str();
+        // print!("{}", data);
+        let request = connect_and_send(name, 0, 10, data.as_bytes())?;
+        print!("{}", request);
+        writeln!(file,"------------------ EXEC ------------------")?;
     } else if command.eq("terminate") {
-        // TODO
-        // let error_message = args[3].as_str();
-        let buffer = connect_and_send(name, 1,10,b"{\"type\":\"message\",\"data\":{\"type\":\"terminate\",\"error\":\"Terminate Now!\"}}\n")?;
-        
-        // // Print out the result, getting the newline for free!
-        print!("Server answered: {buffer}");
+        let error_message = match args.len() > 3 {
+            true => args[3].as_str(),
+            false => "termination",
+        };
+         
+        let mut msg: String = "terminate:".to_owned();
+        msg.push_str(error_message);
+        connect_and_send(name, 0,10,msg.as_bytes())?;
+        print!("0x");
+        writeln!(file,"------------------ TERMINATE ------------------")?;
+    } else {
+        writeln!(file,"------------------ UNKNOWN ------------------")?;
     }
 }
 
