@@ -95,4 +95,39 @@ library Exec {
 
         return vm.ffi(inputs);
     }
+
+    //  function init1193(string memory jsmodule) private returns (bytes memory) {
+    //     string[] memory inputs = new string[](3);
+    //     inputs[0] = "./forge-ipc-client";
+    //     inputs[1] = "init";
+    //     inputs[2] = jsmodule;
+    //     return vm.ffi(inputs);
+    // }
+
+    // function terminate1193(
+    //     string memory id,
+    //     string memory errorMessage
+    // ) private {
+    //     string[] memory inputs = new string[](4);
+    //     inputs[0] = "./forge-ipc-client";
+    //     inputs[1] = "terminate";
+    //     inputs[2] = id;
+    //     inputs[3] = errorMessage;
+
+    //     vm.ffi(inputs);
+    //     revert(errorMessage);
+    // }
+
+    // function call1193(
+    //     string memory id,
+    //     string memory value
+    // ) private returns (bytes memory) {
+    //     string[] memory inputs = new string[](4);
+    //     inputs[0] = "./forge-ipc-client";
+    //     inputs[1] = "exec";
+    //     inputs[2] = id;
+    //     inputs[3] = value;
+
+    //     return vm.ffi(inputs);
+    // }
 }

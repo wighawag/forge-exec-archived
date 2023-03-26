@@ -29,12 +29,11 @@ export class ReverseIPCProvider {
 
 		ipc.config.logger = (...args) => console.log(`!!!IPC`, ...args);
 		// ipc.config.logger = () => {};
-		ipc.config.id = this.socketID;
 		ipc.config.retry = 1500;
 		ipc.config.delimiter = '\n';
 
 		try {
-			ipc.serve(this.onServing.bind(this));
+			ipc.serve(this.socketID, this.onServing.bind(this));
 			ipc.server.start();
 		} catch (err) {
 			console.log(`!!!IPC ERROR`, err);

@@ -4,6 +4,19 @@ const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix
 import {fork} from 'child_process';
 import fs from 'fs';
 
+function socketComponents(socketID: string): {
+	id: string;
+	appSpace: string;
+	socketRoot: string;
+} {
+	const rootEnd = socketID.lastIndexOf('/') + 1;
+	const appEnd = socketID.lastIndexOf('.') + 1;
+	const socketRoot = socketID.slice(0, rootEnd);
+	const appSpace = socketID.slice(rootEnd, appEnd);
+	const id = socketID.slice(appEnd);
+	return {id, socketRoot, appSpace};
+}
+
 const logPath = '.executor.log'; // `.executor_${process.pid}.log`
 const access = fs.createWriteStream(logPath, {flags: 'a'});
 const oldStdoutWrite = process.stdout.write.bind(process.stdout);
@@ -26,8 +39,8 @@ function exitToTest() {
 }
 
 if (args[0] === 'init') {
+	const socketID = '/tmp/app.world';
 	console.log('!!! initialization...');
-	const socketID = 'world'; // TODO random
 	const server = process.env.FORGE_EXECUTOR_LOGS
 		? fork(args[1], [socketID])
 		: fork(args[1], [socketID], {detached: true, silent: true});
@@ -35,8 +48,28 @@ if (args[0] === 'init') {
 	const encoded = AbiCoder.defaultAbiCoder().encode(['string'], [socketID]);
 	// console.log(`!!! ${encoded}`);
 	oldStdoutWrite(encoded);
-	// console.log(`!!! exiting...`);
-	process.exit();
+	let exiting = false;
+	function connectAndExit() {
+		const {id} = socketComponents(socketID);
+		// const clientID = 'executor';
+		// ipc.config.id = clientID;
+		ipc.config.retry = 1500;
+		ipc.config.delimiter = '\n';
+		ipc.connectTo(id, socketID, function () {
+			ipc.of[id].on('connect', function () {
+				console.log(`!!! connected to ${socketID}`);
+				exiting = true;
+				process.exit();
+			});
+			ipc.of[id].on('disconnect', function () {
+				console.log(`!!! disconnected, RETRY`);
+				if (!exiting) {
+					setTimeout(connectAndExit, 50);
+				}
+			});
+		});
+	}
+	connectAndExit();
 } else {
 	ipc.config.logger = (...args) => console.log(`!!!EXECUTOR`, ...args);
 	// ipc.config.logger = () => {};
@@ -44,20 +77,22 @@ if (args[0] === 'init') {
 	ipc.config.retry = 1500;
 	ipc.config.delimiter = '\n';
 
-	const ipcSocket = args[1];
+	const socketID = args[1];
+	const {id} = socketComponents(socketID);
+	console.log(`!!! EXECUTOR ${socketID}`);
 
 	if (args[0] === 'exec') {
-		ipc.connectTo(ipcSocket, function () {
-			ipc.of[ipcSocket].on('connect', function () {
-				console.log(`!!! connected to ${ipcSocket}`);
-				ipc.of[ipcSocket].emit('message', {type: 'response', data: args[2]});
+		ipc.connectTo(id, socketID, function () {
+			ipc.of[id].on('connect', function () {
+				console.log(`!!! connected to ${socketID}`);
+				ipc.of[id].emit('message', {type: 'response', data: args[2]});
 			});
-			ipc.of[ipcSocket].on('disconnect', function () {
+			ipc.of[id].on('disconnect', function () {
 				// console.log(`!!! disconnected`);
 				// console.error('!!! disconnected from world');
 				process.exit(0);
 			});
-			ipc.of[ipcSocket].on('message', function (encoded) {
+			ipc.of[id].on('message', function (encoded) {
 				// console.log(`!!! sending encoded data: ${JSON.stringify(encoded)}`);
 				oldStdoutWrite(encoded);
 				// console.log(`!!! exiting...`);
@@ -65,13 +100,13 @@ if (args[0] === 'init') {
 			});
 		});
 	} else if (args[0] === 'terminate') {
-		ipc.connectTo(ipcSocket, function () {
-			ipc.of[ipcSocket].on('connect', function () {
-				ipc.of[ipcSocket].emit('message', {type: 'terminate', error: args[2]});
+		ipc.connectTo(id, socketID, function () {
+			ipc.of[id].on('connect', function () {
+				ipc.of[id].emit('message', {type: 'terminate', error: args[2]});
 				oldStdoutWrite('0x');
 				process.exit();
 			});
-			ipc.of[ipcSocket].on('disconnect', function () {
+			ipc.of[id].on('disconnect', function () {
 				oldStdoutWrite('failed to terminate');
 				process.exit(1);
 			});

@@ -4,12 +4,13 @@ use std::error::Error;
 use std::env;
 use std::process::Command;
 use std::{thread, time};
+use std::str;
 use ethabi::{encode, Token};
 use hex;
 
 use interprocess::local_socket::{LocalSocketStream, NameTypeSupport};
 
-fn connect<'a>(name: &str, retry: u32) -> LocalSocketStream {
+fn connect<'a>(name: &str, retry: u32, retry_interval: u64) -> LocalSocketStream {
     println!("connecting to {}", name);
     let connection_attempt = LocalSocketStream::connect(name);
     let conn = match connection_attempt {
@@ -19,21 +20,21 @@ fn connect<'a>(name: &str, retry: u32) -> LocalSocketStream {
             if retry == 0 {
                 panic!("Failed to connect: {:?}", error);
             }
-            thread::sleep(time::Duration::from_millis(10));
+            thread::sleep(time::Duration::from_millis(retry_interval));
             println!("retrying...");
-            return connect(name, retry -1);
+            return connect(name, retry -1, retry_interval);
         }
     };
     return conn;
 }
 
-fn connect_and_send(name: &str, retry: u32, messageBuffer: &[u8]) -> Result<String, Box<dyn Error>>{
+fn connect_and_send(name: &str, retry: u32, retry_interval: u64, message_buffer: &[u8]) -> Result<String, Box<dyn Error>>{
     
     // Preemptively allocate a sizeable buffer for reading.
     // This size should be enough and should be easy to find for the allocator.
     let mut buffer = String::with_capacity(128);
 
-    let conn = connect(name, 3);
+    let conn = connect(name, retry, retry_interval);
 
     // Wrap it into a buffered reader right away so that we could read a single line out of it.
     let mut conn = BufReader::new(conn);
@@ -41,9 +42,8 @@ fn connect_and_send(name: &str, retry: u32, messageBuffer: &[u8]) -> Result<Stri
     // Write our message into the stream. This will finish either when the whole message has been
     // writen or if a write operation returns an error. (`.get_mut()` is to get the writer,
     // `BufReader` doesn't implement a pass-through `Write`.)
-    // conn.get_mut().write_all(b"{\"type\":\"message\",\"data\":{\"type\":\"response\",\"data\":\"0xFF\"}}\n")?; // \f = \x0c
 
-    conn.get_mut().write_all(messageBuffer)?; // \f = \x0c
+    conn.get_mut().write_all(message_buffer)?;
 
     // // We now employ the buffer we allocated prior and read a single line, interpreting a newline
     // // character as an end-of-file (because local sockets cannot be portably shut down), verifying
@@ -73,24 +73,46 @@ if command.eq("init") {
             OnlyNamespaced => "@app.world",
         }
     };
-    // TODO use name created above
 
     let child = Command::new("node")
-    .args(["../demo/example.js", "world"])
+    .args(["../demo/example.js", name])
     .spawn()
     .expect("failed to execute child");
+
+    // we attempt to connect, we retry 300 times with an interval of 10ms
+    // the process has 3 seconds to establish an IPC server
+    // this is plenty of time
+    connect(name, 300, 10);
+
+    // we could use standard output to let the ipc server give us the name,
+    // this is not ideal as standard output can be easily poluted
+    // let mut buffer = [0; 12];
+    // let mut stdout = child.stdout.take().unwrap();
+    // stdout.read(&mut buffer)?; // only read 12 bytes 
+    
+    // let s = match str::from_utf8(&buffer) {
+    //     Ok(v) => v,
+    //     Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
+    // };    
+    // println!("from socket: {}", s);
     
     println!("Hello child! {}", child.id());
-    print!("{}", hex::encode(encode(&[Token::String(String::from("hello"))])));
+    print!("{}", hex::encode(encode(&[Token::String(String::from(name))])));
 
 } else {
     let name = args[2].as_str();
     if command.eq("exec") {
-        let buffer = connect_and_send(name, 3,b"{\"type\":\"message\",\"data\":{\"type\":\"response\",\"data\":\"0xFF\"}}\n")?;
+        // TODO
+        // let data = args[3].as_str();
+        let buffer = connect_and_send(name, 1, 10, b"{\"type\":\"message\",\"data\":{\"type\":\"response\",\"data\":\"0xFF\"}}\n")?;
+        
         // // Print out the result, getting the newline for free!
         print!("Server answered: {buffer}");
     } else if command.eq("terminate") {
-        let buffer = connect_and_send(name, 3,b"{\"type\":\"message\",\"data\":{\"type\":\"terminate\",\"error\":\"Terminate Now!\"}}\n")?;
+        // TODO
+        // let error_message = args[3].as_str();
+        let buffer = connect_and_send(name, 1,10,b"{\"type\":\"message\",\"data\":{\"type\":\"terminate\",\"error\":\"Terminate Now!\"}}\n")?;
+        
         // // Print out the result, getting the newline for free!
         print!("Server answered: {buffer}");
     }
