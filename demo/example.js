@@ -34,5 +34,18 @@ execute(async (provider) => {
       ],
     }),
   ]);
+
+  const tx = await provider.request({
+    method: "eth_sendTransaction",
+    params: [
+      {
+        from: "0xFF",
+        to: "0x0000000000000000000000000000000000000001",
+        value: "0x01",
+      },
+    ],
+  });
+  console.log({ tx: tx });
+
   return { types: results.map(() => "address"), values: results };
 });

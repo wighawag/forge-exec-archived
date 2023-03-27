@@ -30,8 +30,9 @@ function exitProcess(errorCode?: number, alwaysInstant?: boolean) {
 	if (alwaysInstant) {
 		process.exit(errorCode);
 	} else {
-		// setTimeout(() => process.exit(errorCode), 100);
-		process.exit(errorCode);
+		// give time for log to show up in log file
+		setTimeout(() => process.exit(errorCode), 100);
+		// process.exit(errorCode);
 	}
 }
 
@@ -223,7 +224,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		const request = {
 			data: AbiCoder.defaultAbiCoder().encode(
 				['bytes', 'address', 'uint256'],
-				[tx.data, tx.to, tx.value || 0]
+				[tx.data || '0x', tx.to || '0x0000000000000000000000000000000000000000', tx.value || 0]
 			) as `0x${string}`,
 			type: 1,
 		};

@@ -35,14 +35,17 @@ library Exec {
             }
             // eth_sendTransaction
             else if (envelopeType == 1) {
-                (bytes memory data, address to, uint256 value) = abi.decode(
-                    envelopeData,
-                    (bytes, address, uint256)
-                );
+                (bytes memory data, address payable to, uint256 value) = abi
+                    .decode(envelopeData, (bytes, address, uint256));
                 if (to != address(0)) {
-                    (bool success, ) = to.call{value: value}(data);
-                    response = vm.toString(success);
-                } else if (data.length > 0) {
+                    if (data.length == 0) {
+                        (bool success, ) = to.call{value: value}(data);
+                        response = success ? "0x01" : "0x00";
+                    } else {
+                        bool success = to.send(value);
+                        response = success ? "0x01" : "0x00";
+                    }
+                } else {
                     address addr;
                     assembly {
                         addr := create(0, add(data, 0x20), mload(data))
@@ -53,7 +56,7 @@ library Exec {
             // balance
             else if (envelopeType == 0x31) {
                 address account = abi.decode(envelopeData, (address));
-                response = vm.toString(account.balance);
+                response = vm.toString(abi.encode(account.balance));
             } else {
                 terminate1193(processID, "UNKNOWN_ENVELOPE");
             }
