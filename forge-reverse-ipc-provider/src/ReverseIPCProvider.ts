@@ -35,15 +35,26 @@ function exitProcess(errorCode?: number, alwaysInstant?: boolean) {
 	}
 }
 
+process.on('uncaughtException', function (err) {
+	console.error(err);
+	setTimeout(() => process.exit(1), 100);
+});
+
 export type ExecuteReturnResult = string | void | {types: string[]; values: any[]};
 export type ExecuteFunction<T extends ExecuteReturnResult> = (provider: EIP1193ProviderWithoutEvents) => T | Promise<T>;
 
 type ResolveFunction<T = any> = (response: T) => void;
 
+export type EncodedRequest = {type: number; data: `0x${string}`};
+
+export type Handler<T> = {request: EncodedRequest; resolution: (v: string) => Promise<T>};
+
+export type QueueElement<T> = {resolve: ResolveFunction<T>; handler: Handler<T>};
+
 export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 	socketID: string;
 	socket: any;
-	resolveQueue: {resolve: ResolveFunction; data: any}[] | undefined;
+	resolveQueue: QueueElement<any>[] | undefined;
 
 	constructor(protected script: ExecuteFunction<T>, socketID: string) {
 		this.socketID = socketID;
@@ -138,14 +149,15 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		}
 	}
 
-	resolvePendingRequest(data: any) {
+	async resolvePendingRequest(data: any) {
 		if (!this.resolveQueue || this.resolveQueue.length === 0) {
 			console.error(`RESOLUTION QUEUE IS EMPTY`);
 			exitProcess(1, true);
 		} else {
 			console.log('!!! RESOLVING PREVIOUS REQUEST');
 			const next = this.resolveQueue.shift();
-			next.resolve(data);
+			const transformedData = await next.handler.resolution(data);
+			next.resolve(transformedData);
 			if (this.resolveQueue.length >= 1) {
 				this.processPendingRequest();
 			}
@@ -154,7 +166,11 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 
 	processPendingRequest() {
 		const next = this.resolveQueue[0];
-		ipc.server.emit(this.socket, next.data + `\n`);
+		const withEnvelope = AbiCoder.defaultAbiCoder().encode(
+			['uint256', 'bytes'],
+			[next.handler.request.type, next.handler.request.data]
+		);
+		ipc.server.emit(this.socket, withEnvelope + `\n`);
 	}
 
 	onMessage(response, socket) {
@@ -183,23 +199,19 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 
 	request(args: EIP1193Request): Promise<any> {
 		const promise = new Promise((resolve) => {
-			let encodedRequest: {type: number; data: `0x${string}`};
+			let handler: Handler<any>;
 			switch (args.method) {
 				case 'eth_sendTransaction':
-					encodedRequest = this.eth_sendTransaction(args.params);
+					handler = this.eth_sendTransaction(args.params);
 					break;
 				case 'eth_getBalance':
-					encodedRequest = this.eth_getBalance(args.params);
+					handler = this.eth_getBalance(args.params);
 					break;
 				default:
 					throw new Error(`method "${args.method}" not supported`);
 			}
 
-			const withEnvelope = AbiCoder.defaultAbiCoder().encode(
-				['uint256', 'bytes'],
-				[encodedRequest.type, encodedRequest.data]
-			);
-			this.resolveQueue.push({resolve, data: withEnvelope});
+			this.resolveQueue.push({resolve, handler});
 			if (this.resolveQueue.length == 1) {
 				this.processPendingRequest();
 			}
@@ -207,25 +219,37 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		return promise;
 	}
 
-	eth_sendTransaction([tx]: [EIP1193TransactionData]) {
-		const txWithEnvelope = {
+	eth_sendTransaction([tx]: [EIP1193TransactionData]): Handler<any> {
+		const request = {
 			data: AbiCoder.defaultAbiCoder().encode(
 				['bytes', 'address', 'uint256'],
 				[tx.data, tx.to, tx.value || 0]
 			) as `0x${string}`,
 			type: 1,
 		};
-		return txWithEnvelope;
+		return {
+			request,
+			resolution: async (v) => {
+				// TODO handle normal tx
+				if (v === '0x0000000000000000000000000000000000000000') {
+					throw new Error(`Could not create contract`);
+				}
+				return v;
+			},
+		};
 	}
 
-	eth_getBalance(params: EIP1193GetBalanceRequest['params']) {
+	eth_getBalance(params: EIP1193GetBalanceRequest['params']): Handler<any> {
 		if (params.length > 1) {
 			throw new Error(`blockTag param not supported`);
 		}
-		const txWithEnvelope = {
+		const request = {
 			data: AbiCoder.defaultAbiCoder().encode(['address'], [params[0]]) as `0x${string}`,
 			type: 31,
 		};
-		return txWithEnvelope;
+		return {
+			request,
+			resolution: async (v) => v,
+		};
 	}
 }
