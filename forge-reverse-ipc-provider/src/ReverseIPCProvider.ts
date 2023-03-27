@@ -13,14 +13,26 @@ if (!process.env.FORGE_EXEC_PROCESS_LOGS) {
 	process.stdout.write = process.stderr.write = access.write.bind(access);
 }
 console.log(`!!! pid: ${process.pid}`);
-console.time('PROCESS');
+// console.time('PROCESS');
 
-export class ReverseIPCProvider {
+function exitProcess(errorCode?: number, alwaysInstant?: boolean) {
+	if (alwaysInstant) {
+		process.exit(errorCode);
+	} else {
+		// setTimeout(() => process.exit(errorCode), 100);
+		process.exit(errorCode);
+	}
+}
+
+export type ExecuteReturnResult = string | void | {types: string[]; values: any[]};
+export type ExecuteFunction<T extends ExecuteReturnResult> = (provider: EIP1193ProviderWithoutEvents) => T | Promise<T>;
+
+export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 	socketID: string;
 	socket: any;
 	resolve: ((response: any) => void) | undefined;
 
-	constructor(protected script: (provider: EIP1193ProviderWithoutEvents) => Promise<void>, socketID: string) {
+	constructor(protected script: ExecuteFunction<T>, socketID: string) {
 		this.socketID = socketID;
 	}
 
@@ -38,12 +50,12 @@ export class ReverseIPCProvider {
 			ipc.server.start();
 		} catch (err) {
 			console.log(`!!!IPC ERROR`, err);
-			process.exit(1);
+			exitProcess(1, true);
 		}
 
 		ipc.server.on('error', (err) => {
 			console.log(`!!!IPC ERROR`, err);
-			process.exit(1);
+			exitProcess(1, true);
 		});
 	}
 
@@ -52,21 +64,65 @@ export class ReverseIPCProvider {
 		ipc.server.on('data', this.onMessage.bind(this));
 	}
 
+	abort(err: any) {
+		console.error(`!!! AN ERROR HAPPEN IN THE SCRIPT`);
+		console.error(`!!! ${err}`);
+		console.timeEnd('PROCESS');
+		exitProcess(1);
+	}
+
+	returnResult(v: T) {
+		console.error(`!!! THE SCRIPT ENDED WITH: ${JSON.stringify(v)}`);
+		// console.timeEnd('PROCESS');
+
+		if (this.socket) {
+			let data = '0x';
+			if (v) {
+				if (typeof v === 'string') {
+					if (!v.startsWith('0x')) {
+						throw new Error(
+							`if you return a string, it needs to be an hex string (prepended with 0x) that represent abi encoded data.`
+						);
+					} else {
+						data = v;
+					}
+				} else if (v.types && v.values) {
+					data = AbiCoder.defaultAbiCoder().encode(v.types, v.values);
+				} else {
+					throw new Error(
+						`If you do not return a string, you must return a {types, values} object that is used to abi encode.`
+					);
+				}
+			}
+
+			const request = AbiCoder.defaultAbiCoder().encode(['uint256', 'bytes'], [0, data]);
+			ipc.server.emit(this.socket, request + `\n`);
+			exitProcess();
+		} else {
+			// TODO error
+			console.error(`!!! NO SOCKET`);
+			exitProcess(1);
+		}
+	}
+
 	executeScript() {
 		console.error('!!! EXECUTING SCRIPT');
-		this.script(this)
-			.then(() => {
-				console.error(`!!! THE SCRIPT ENDED`);
-				this.stop();
-			})
-			.catch((err) => {
-				console.error(`!!! AN ERROR HAPPEN IN THE SCRIPT`);
-				console.error(`!!! ${err}`);
-				console.timeEnd('PROCESS');
-				// process.exit(1);
-				// give time to log
-				setTimeout(() => process.exit(1), 100);
-			});
+		try {
+			const promiseOrResult = this.script(this);
+			if (promiseOrResult instanceof Promise) {
+				promiseOrResult
+					.then((v) => {
+						this.returnResult(v);
+					})
+					.catch((err) => {
+						this.abort(err);
+					});
+			} else {
+				this.returnResult(promiseOrResult);
+			}
+		} catch (err) {
+			this.abort(err);
+		}
 	}
 
 	onMessage(response, socket) {
@@ -76,8 +132,9 @@ export class ReverseIPCProvider {
 		console.log(`!!! MESSAGE from client`);
 
 		if (data.startsWith('terminate:')) {
-			console.error(`!!! ${data.slice(10)}`);
-			process.exit(1);
+			// TODO good terminate ?
+			console.error(`!!! TERMINATING: ${data.slice(10)}`);
+			exitProcess(1);
 		} else if (data.startsWith('0x')) {
 			if (!this.resolve) {
 				this.executeScript();
@@ -89,21 +146,8 @@ export class ReverseIPCProvider {
 				this.resolve = undefined;
 			}
 		} else {
-			console.error(`!!! invalid response, need to start with "terminate", or "0x": ${data}`);
+			console.error(`!!! INVALID RESPONSE, need to start with "terminate", or "0x": ${data}`);
 		}
-	}
-
-	stop() {
-		if (this.socket) {
-			const request = AbiCoder.defaultAbiCoder().encode(['uint256', 'bytes'], [0, '0x']);
-			ipc.server.emit(this.socket, request + `\n`);
-		}
-
-		// console.log(`!!! WE ARE DONE...`);
-		console.timeEnd('PROCESS');
-		// process.exit();
-		// give time to log
-		setTimeout(() => process.exit(), 100);
 	}
 
 	request(args: EIP1193Request): Promise<any> {

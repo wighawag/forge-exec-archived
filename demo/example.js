@@ -34,5 +34,5 @@ execute(async (provider) => {
       ],
     }),
   ];
-  console.log({ results: results.join(",") });
+  return { types: ["uint256"], values: [results.length] };
 });

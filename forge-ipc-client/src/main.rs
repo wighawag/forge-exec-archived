@@ -106,6 +106,7 @@ if command.eq("init") {
         // print!("{}", data);
         let request = connect_and_send(name, 0, 10, data.as_bytes())?;
         print!("{}", request);
+        writeln!(file,"NEW REQUEST: {}", request)?;
         writeln!(file,"------------------ EXEC ------------------")?;
     } else if command.eq("terminate") {
         let error_message = match args.len() > 3 {
