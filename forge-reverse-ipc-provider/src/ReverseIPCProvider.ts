@@ -12,6 +12,17 @@ if (process.env.FORGE_EXEC_PROCESS_LOGS === '') {
 if (!process.env.FORGE_EXEC_PROCESS_LOGS) {
 	process.stdout.write = process.stderr.write = access.write.bind(access);
 }
+// TODO use LOG for logging debug / error message about ReverseIPCProvider
+// then we can have a special console.log / error function to write log into forge
+
+// function LOG(type: 'error' | 'log', message: string, ...extraMessage: string[]) {
+// 	const msg = message + extraMessage && extraMessage.length > 0 ? ',' + extraMessage.join(',') : '';
+// 	if (process.env.FORGE_EXEC_PROCESS_LOGS) {
+// 		console.log(msg);
+// 	} else {
+// 		access.write(msg);
+// 	}
+// }
 console.log(`!!! pid: ${process.pid}`);
 // console.time('PROCESS');
 
