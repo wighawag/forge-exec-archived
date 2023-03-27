@@ -8,6 +8,6 @@ contract ExecDemoScript is Script {
     function setUp() public {}
 
     function run() public {
-        Exec.execute("./example.js");
+        Exec.execute("./example.js", true);
     }
 }

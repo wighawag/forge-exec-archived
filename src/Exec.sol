@@ -8,10 +8,9 @@ library Exec {
         Vm(address(bytes20(uint160(uint256(keccak256("hevm cheat code"))))));
 
     function execute(
-        string memory jsModule
+        string memory jsModule,
+        bool broadcast
     ) internal returns (bytes memory result) {
-        vm.startBroadcast();
-
         bytes memory init = init1193(jsModule);
         string memory processID = abi.decode(init, (string));
 
@@ -35,8 +34,21 @@ library Exec {
             }
             // eth_sendTransaction
             else if (envelopeType == 1) {
-                (bytes memory data, address payable to, uint256 value) = abi
-                    .decode(envelopeData, (bytes, address, uint256));
+                (
+                    address from,
+                    bytes memory data,
+                    address payable to,
+                    uint256 value
+                ) = abi.decode(
+                        envelopeData,
+                        (address, bytes, address, uint256)
+                    );
+                if (broadcast) {
+                    vm.broadcast(from);
+                } else {
+                    vm.prank(from, from);
+                }
+
                 if (to != address(0)) {
                     if (data.length == 0) {
                         (bool success, ) = to.call{value: value}(data);
@@ -61,7 +73,6 @@ library Exec {
                 terminate1193(processID, "UNKNOWN_ENVELOPE");
             }
         }
-        vm.stopBroadcast();
     }
 
     function init1193(string memory jsmodule) private returns (bytes memory) {

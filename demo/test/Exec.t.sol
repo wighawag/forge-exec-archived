@@ -8,7 +8,7 @@ import {Exec} from "forge-exec/Exec.sol";
 contract ExecTest is Test {
     function setUp() public {
         // we can for example make reuse of a deploy script here and setup our test environment the same way we could do a script, all in js.
-        bytes memory test = Exec.execute("./example.js");
+        bytes memory test = Exec.execute("./example.js", false);
         (address addr1, address addr2, address addr3) = abi.decode(
             test,
             (address, address, address)
@@ -21,22 +21,22 @@ contract ExecTest is Test {
     }
 
     function testDeplyment() public view {
-        bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
+        bytes memory code = 0xB318d82866cd9f7d7a55dbbF0a80f787B72BF97C.code;
         assert(code.length > 0);
     }
 
     function testDeplymentAgain() public view {
-        bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
+        bytes memory code = 0xB318d82866cd9f7d7a55dbbF0a80f787B72BF97C.code;
         assert(code.length > 0);
     }
 
     function testDeplymentAgainAndAgain() public view {
-        bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
+        bytes memory code = 0xB318d82866cd9f7d7a55dbbF0a80f787B72BF97C.code;
         assert(code.length > 0);
     }
 
     function testDeplymentAgainAndAgainAndAgain() public view {
-        bytes memory code = 0x90193C961A926261B756D1E5bb255e67ff9498A1.code;
+        bytes memory code = 0xB318d82866cd9f7d7a55dbbF0a80f787B72BF97C.code;
         assert(code.length > 0);
     }
 }

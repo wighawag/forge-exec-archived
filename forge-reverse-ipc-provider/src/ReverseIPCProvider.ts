@@ -221,10 +221,13 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 	}
 
 	eth_sendTransaction([tx]: [EIP1193TransactionData]): Handler<any> {
+		if (!tx.from) {
+			throw new Error(`no from specified ${JSON.stringify(tx)}`);
+		}
 		const request = {
 			data: AbiCoder.defaultAbiCoder().encode(
-				['bytes', 'address', 'uint256'],
-				[tx.data || '0x', tx.to || '0x0000000000000000000000000000000000000000', tx.value || 0]
+				['address', 'bytes', 'address', 'uint256'],
+				[tx.from, tx.data || '0x', tx.to || '0x0000000000000000000000000000000000000000', tx.value || 0]
 			) as `0x${string}`,
 			type: 1,
 		};
