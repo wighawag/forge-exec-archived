@@ -1,0 +1,8 @@
+/target
+cache/
+out/
+.executor*
+.ipc*
+broadcast/*/31337/
+.rust-executor*
+forge-ipc-client
