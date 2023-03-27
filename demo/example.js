@@ -2,8 +2,8 @@ import { execute } from "forge-reverse-ipc-provider";
 // const { execute } = require("forge-reverse-ipc-provider");
 
 execute(async (provider) => {
-  const results = [
-    await provider.request({
+  const results = await Promise.all([
+    provider.request({
       method: "eth_sendTransaction",
       params: [
         {
@@ -13,7 +13,7 @@ execute(async (provider) => {
         },
       ],
     }),
-    await provider.request({
+    provider.request({
       method: "eth_sendTransaction",
       params: [
         {
@@ -23,7 +23,7 @@ execute(async (provider) => {
         },
       ],
     }),
-    await provider.request({
+    provider.request({
       method: "eth_sendTransaction",
       params: [
         {
@@ -33,6 +33,6 @@ execute(async (provider) => {
         },
       ],
     }),
-  ];
-  return { types: ["uint256"], values: [results.length] };
+  ]);
+  return { types: results.map(() => "address"), values: results };
 });

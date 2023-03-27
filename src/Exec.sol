@@ -28,29 +28,32 @@ library Exec {
                 (uint256, bytes)
             );
 
+            // STOP
             if (envelopeType == 0) {
                 result = envelopeData;
                 break;
-            } else if (envelopeType == 1) {
+            }
+            // eth_sendTransaction
+            else if (envelopeType == 1) {
                 (bytes memory data, address to, uint256 value) = abi.decode(
                     envelopeData,
                     (bytes, address, uint256)
                 );
                 if (to != address(0)) {
                     (bool success, ) = to.call{value: value}(data);
-                    if (!success) {
-                        terminate1193(processID, "CALL_FAILED");
-                    }
+                    response = vm.toString(success);
                 } else if (data.length > 0) {
                     address addr;
                     assembly {
                         addr := create(0, add(data, 0x20), mload(data))
                     }
-                    if (addr == address(0)) {
-                        terminate1193(processID, "FAILED_TO_CREATE_CONTRACT");
-                    }
+                    response = vm.toString(addr);
                 }
-                response = "0xFF";
+            }
+            // balance
+            else if (envelopeType == 0x31) {
+                address account = abi.decode(envelopeData, (address));
+                response = vm.toString(account.balance);
             } else {
                 terminate1193(processID, "UNKNOWN_ENVELOPE");
             }

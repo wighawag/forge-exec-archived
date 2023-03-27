@@ -9,10 +9,13 @@ contract ExecTest is Test {
     function setUp() public {
         // we can for example make reuse of a deploy script here and setup our test environment the same way we could do a script, all in js.
         bytes memory test = Exec.execute("./example.js");
-        uint256 num = abi.decode(test, (uint256));
+        (address addr1, address addr2, address addr3) = abi.decode(
+            test,
+            (address, address, address)
+        );
 
         console.log("----");
-        console.log(num);
+        console.log(addr1, addr2, addr3);
         console.logBytes(test);
         console.log("----");
     }

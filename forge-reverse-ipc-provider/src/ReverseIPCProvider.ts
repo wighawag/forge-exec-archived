@@ -1,7 +1,7 @@
 import * as ipcModule from '@achrinza/node-ipc';
 const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix issue with cjs
 import fs from 'node:fs';
-import {EIP1193ProviderWithoutEvents, EIP1193Request, EIP1193TransactionData} from 'eip-1193';
+import {EIP1193GetBalanceRequest, EIP1193ProviderWithoutEvents, EIP1193Request, EIP1193TransactionData} from 'eip-1193';
 import {AbiCoder} from 'ethers';
 
 const logPath = './.ipc.log'; // `.ipc_${process.pid}.log`
@@ -27,10 +27,12 @@ function exitProcess(errorCode?: number, alwaysInstant?: boolean) {
 export type ExecuteReturnResult = string | void | {types: string[]; values: any[]};
 export type ExecuteFunction<T extends ExecuteReturnResult> = (provider: EIP1193ProviderWithoutEvents) => T | Promise<T>;
 
+type ResolveFunction<T = any> = (response: T) => void;
+
 export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 	socketID: string;
 	socket: any;
-	resolve: ((response: any) => void) | undefined;
+	resolveQueue: {resolve: ResolveFunction; data: any}[] | undefined;
 
 	constructor(protected script: ExecuteFunction<T>, socketID: string) {
 		this.socketID = socketID;
@@ -125,6 +127,25 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		}
 	}
 
+	resolvePendingRequest(data: any) {
+		if (!this.resolveQueue || this.resolveQueue.length === 0) {
+			console.error(`RESOLUTION QUEUE IS EMPTY`);
+			exitProcess(1, true);
+		} else {
+			console.log('!!! RESOLVING PREVIOUS REQUEST');
+			const next = this.resolveQueue.shift();
+			next.resolve(data);
+			if (this.resolveQueue.length >= 1) {
+				this.processPendingRequest();
+			}
+		}
+	}
+
+	processPendingRequest() {
+		const next = this.resolveQueue[0];
+		ipc.server.emit(this.socket, next.data + `\n`);
+	}
+
 	onMessage(response, socket) {
 		this.socket = socket;
 		const data = response.toString('utf8').slice(0, -1);
@@ -136,14 +157,13 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 			console.error(`!!! TERMINATING: ${data.slice(10)}`);
 			exitProcess(1);
 		} else if (data.startsWith('0x')) {
-			if (!this.resolve) {
+			if (!this.resolveQueue) {
+				this.resolveQueue = [];
 				this.executeScript();
 				// console.error(`!!! ERRRO no request to resolve`);
 				// must be the first message, we can execute
 			} else {
-				console.error('!!! RESOLVING PREVIOUS REQUEST');
-				this.resolve(data);
-				this.resolve = undefined;
+				this.resolvePendingRequest(data);
 			}
 		} else {
 			console.error(`!!! INVALID RESPONSE, need to start with "terminate", or "0x": ${data}`);
@@ -157,16 +177,21 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 				case 'eth_sendTransaction':
 					encodedRequest = this.eth_sendTransaction(args.params);
 					break;
+				case 'eth_getBalance':
+					encodedRequest = this.eth_getBalance(args.params);
+					break;
 				default:
 					throw new Error(`method "${args.method}" not supported`);
 			}
 
-			this.resolve = resolve;
 			const withEnvelope = AbiCoder.defaultAbiCoder().encode(
 				['uint256', 'bytes'],
 				[encodedRequest.type, encodedRequest.data]
 			);
-			ipc.server.emit(this.socket, withEnvelope + `\n`);
+			this.resolveQueue.push({resolve, data: withEnvelope});
+			if (this.resolveQueue.length == 1) {
+				this.processPendingRequest();
+			}
 		});
 		return promise;
 	}
@@ -178,6 +203,17 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 				[tx.data, tx.to, tx.value || 0]
 			) as `0x${string}`,
 			type: 1,
+		};
+		return txWithEnvelope;
+	}
+
+	eth_getBalance(params: EIP1193GetBalanceRequest['params']) {
+		if (params.length > 1) {
+			throw new Error(`blockTag param not supported`);
+		}
+		const txWithEnvelope = {
+			data: AbiCoder.defaultAbiCoder().encode(['address'], [params[0]]) as `0x${string}`,
+			type: 31,
 		};
 		return txWithEnvelope;
 	}
