@@ -47,5 +47,10 @@ execute(async (provider) => {
   });
   console.log({ tx: tx });
 
-  return { types: results.map(() => "address"), values: results };
+  return {
+    types: results.map(() => ({
+      type: "address",
+    })),
+    values: results,
+  };
 });

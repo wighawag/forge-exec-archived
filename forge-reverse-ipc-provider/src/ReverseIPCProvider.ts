@@ -2,7 +2,8 @@ import * as ipcModule from '@achrinza/node-ipc';
 const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix issue with cjs
 import fs from 'node:fs';
 import {EIP1193GetBalanceRequest, EIP1193ProviderWithoutEvents, EIP1193Request, EIP1193TransactionData} from 'eip-1193';
-import {AbiCoder} from 'ethers';
+import {encodeAbiParameters} from 'viem';
+import type {AbiParameter, AbiParametersToPrimitiveTypes, Narrow} from 'abitype';
 
 const logPath = './.ipc.log'; // `.ipc_${process.pid}.log`
 const access = fs.createWriteStream(logPath, {flags: 'a'});
@@ -41,7 +42,15 @@ process.on('uncaughtException', function (err) {
 	setTimeout(() => process.exit(1), 100);
 });
 
-export type ExecuteReturnResult = string | void | {types: string[]; values: any[]};
+export type ToDecode<TParams extends readonly AbiParameter[] | readonly unknown[]> = {
+	types: Narrow<TParams>;
+	values: TParams extends readonly AbiParameter[] ? AbiParametersToPrimitiveTypes<TParams> : never;
+};
+export type ExecuteReturnResult<TParams extends readonly AbiParameter[] | readonly unknown[] = readonly unknown[]> =
+	| string
+	| void
+	| ToDecode<TParams>;
+
 export type ExecuteFunction<T extends ExecuteReturnResult> = (provider: EIP1193ProviderWithoutEvents) => T | Promise<T>;
 
 type ResolveFunction<T = any> = (response: T) => void;
@@ -101,7 +110,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		// console.timeEnd('PROCESS');
 
 		if (this.socket) {
-			let data = '0x';
+			let data: `0x${string}` = '0x';
 			if (v) {
 				if (typeof v === 'string') {
 					if (!v.startsWith('0x')) {
@@ -109,10 +118,10 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 							`if you return a string, it needs to be an hex string (prepended with 0x) that represent abi encoded data.`
 						);
 					} else {
-						data = v;
+						data = v as `0x${string}`;
 					}
 				} else if (v.types && v.values) {
-					data = AbiCoder.defaultAbiCoder().encode(v.types, v.values);
+					data = encodeAbiParameters(v.types, v.values);
 				} else {
 					throw new Error(
 						`If you do not return a string, you must return a {types, values} object that is used to abi encode.`
@@ -120,7 +129,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 				}
 			}
 
-			const request = AbiCoder.defaultAbiCoder().encode(['uint256', 'bytes'], [0, data]);
+			const request = encodeAbiParameters([{type: 'uint256'}, {type: 'bytes'}], [0n, data]);
 			ipc.server.emit(this.socket, request + `\n`);
 			exitProcess();
 		} else {
@@ -167,8 +176,8 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 
 	processPendingRequest() {
 		const next = this.resolveQueue[0];
-		const withEnvelope = AbiCoder.defaultAbiCoder().encode(
-			['uint256', 'bytes'],
+		const withEnvelope = encodeAbiParameters(
+			[{type: 'uint32'}, {type: 'bytes'}],
 			[next.handler.request.type, next.handler.request.data]
 		);
 		ipc.server.emit(this.socket, withEnvelope + `\n`);
@@ -225,9 +234,9 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 			throw new Error(`no from specified ${JSON.stringify(tx)}`);
 		}
 		const request = {
-			data: AbiCoder.defaultAbiCoder().encode(
-				['address', 'bytes', 'address', 'uint256'],
-				[tx.from, tx.data || '0x', tx.to || '0x0000000000000000000000000000000000000000', tx.value || 0]
+			data: encodeAbiParameters(
+				[{type: 'address'}, {type: 'bytes'}, {type: 'address'}, {type: 'uint256'}],
+				[tx.from, tx.data || '0x', tx.to || '0x0000000000000000000000000000000000000000', BigInt(tx.value || 0)]
 			) as `0x${string}`,
 			type: 1,
 		};
@@ -248,7 +257,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 			throw new Error(`blockTag param not supported`);
 		}
 		const request = {
-			data: AbiCoder.defaultAbiCoder().encode(['address'], [params[0]]) as `0x${string}`,
+			data: encodeAbiParameters([{type: 'address'}], [params[0]]) as `0x${string}`,
 			type: 31,
 		};
 		return {

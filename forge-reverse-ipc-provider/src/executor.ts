@@ -1,4 +1,4 @@
-import {AbiCoder} from 'ethers';
+import {encodeAbiParameters} from 'viem';
 import * as ipcModule from '@achrinza/node-ipc';
 const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix issue with cjs
 import {fork} from 'child_process';
@@ -34,7 +34,7 @@ function exitToTest() {
 	// oldStdoutWrite(
 	// 	'0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002676d000000000000000000000000000000000000000000000000000000000000'
 	// );
-	oldStdoutWrite(AbiCoder.defaultAbiCoder().encode(Array(args.length).fill('string'), args));
+	oldStdoutWrite(encodeAbiParameters(Array(args.length).fill({type: 'string'}), args));
 	process.exit();
 }
 
@@ -45,7 +45,7 @@ if (args[0] === 'init') {
 		? fork(args[1], [socketID])
 		: fork(args[1], [socketID], {detached: true, silent: true});
 	console.log(`!!! serverPID: ${server.pid}`);
-	const encoded = AbiCoder.defaultAbiCoder().encode(['string'], [socketID]);
+	const encoded = encodeAbiParameters([{type: 'string'}], [socketID]);
 	// console.log(`!!! ${encoded}`);
 
 	let exiting = false;
