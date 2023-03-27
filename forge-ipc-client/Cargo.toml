@@ -11,7 +11,7 @@ homepage = "https://github.com/wighawag/forge-exec/forge-ipc-client"
 authors = ["Ronan Sandford"]
 
 [dependencies]
- interprocess = { git = "https://github.com/kotauskas/interprocess.git" }
+ interprocess = "1.2.1"
  ethabi = "18.0.0"
  hex = "0.4.3"
  rand = "0.8.5"
