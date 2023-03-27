@@ -33,7 +33,7 @@ fn connect<'a>(name: &str, retry: u32, retry_interval: u64) -> LocalSocketStream
 }
 
 fn connect_and_send(name: &str, retry: u32, retry_interval: u64, message_buffer: &[u8]) -> Result<String, Box<dyn Error>>{
-    let mut buffer = String::with_capacity(128);
+    let mut buffer = String::with_capacity(16777216);
 
     let conn = connect(name, retry, retry_interval);
     // Wrap it into a buffered reader right away so that we could read a single line out of it.
@@ -55,6 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #[cfg(debug_assertions)]
 let mut file = OpenOptions::new()
+.create(true)
 .append(true)
 .open(".rust-executor.log")
 .unwrap();
@@ -66,7 +67,20 @@ let command = &args[1];
 #[cfg(debug_assertions)]
 writeln!(file, "{}", args.join(","))?;
 
-if command.eq("init") {
+
+if command.eq("connect") {
+    // debugging command
+    let args: Vec<String> = env::args().collect();
+    let socket_id = &args[2];
+
+    connect(socket_id, 300, 10);
+
+    #[cfg(debug_assertions)]
+    writeln!(file, "connected!")?;
+    
+    #[cfg(debug_assertions)]
+    writeln!(file,"------------------ CONNECT ------------------")?;
+} else if command.eq("init") {
     
     let mut rng = rand::thread_rng();
     let y: u32 = rng.gen();
