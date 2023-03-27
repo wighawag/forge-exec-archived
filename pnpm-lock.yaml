@@ -16,7 +16,7 @@ importers:
       '@achrinza/node-ipc': ^10.1.7
       '@types/node': ^18.15.7
       abitype: ^0.7.1
-      eip-1193: ^0.2.4
+      eip-1193: ^0.2.5
       named-logs: ^0.2.2
       tsup: ^6.7.0
       typescript: ^4.9.5
@@ -28,7 +28,7 @@ importers:
     devDependencies:
       '@types/node': 18.15.9
       abitype: 0.7.1_typescript@4.9.5
-      eip-1193: 0.2.4
+      eip-1193: 0.2.5
       tsup: 6.7.0_typescript@4.9.5
       typescript: 4.9.5
 
@@ -428,8 +428,8 @@ packages:
     engines: {node: '>=6.0.0'}
     dev: false
 
-  /eip-1193/0.2.4:
-    resolution: {integrity: sha512-7jRnqPKwsj5XrJ8ViqtXihB5snd6U9TpW8X53n+qYQodEFqci0HNrm44pFQKPYmCJKsjvqA3nNyskoG3OA4sLA==}
+  /eip-1193/0.2.5:
+    resolution: {integrity: sha512-zDA+VRO/uSZ/GF+VJM+Blgg1Ue/6n7KCvVyZVEsCF4F4LcdNDs6XdpJqA7bH2Ekkc/n1Z5ZJ5CS6qs3NY8HvFw==}
     dev: true
 
   /esbuild/0.17.13:

@@ -7,8 +7,9 @@ import {Exec} from "forge-exec/Exec.sol";
 
 contract ExecTest is Test {
     function setUp() public {
-        // we can for example make reuse of a deploy script here and setup our test environment the same way we could do a script, all in js.
-        bytes memory test = Exec.execute("./example.js", false);
+        string[] memory args = new string[](1);
+        args[0] = "./example.js";
+        bytes memory test = Exec.execute("node", args, false);
         (address addr1, address addr2, address addr3) = abi.decode(
             test,
             (address, address, address)

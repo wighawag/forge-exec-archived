@@ -8,6 +8,8 @@ contract ExecDemoScript is Script {
     function setUp() public {}
 
     function run() public {
-        Exec.execute("./example.js", true);
+        string[] memory args = new string[](1);
+        args[0] = "./example.js";
+        Exec.execute("node", args, true);
     }
 }

@@ -8,10 +8,11 @@ library Exec {
         Vm(address(bytes20(uint160(uint256(keccak256("hevm cheat code"))))));
 
     function execute(
-        string memory jsModule,
+        string memory program,
+        string[] memory args,
         bool broadcast
     ) internal returns (bytes memory result) {
-        bytes memory init = init1193(jsModule);
+        bytes memory init = init1193(program, args);
         string memory processID = abi.decode(init, (string));
 
         string memory response = "0x"; // the first response
@@ -75,12 +76,17 @@ library Exec {
         }
     }
 
-    function init1193(string memory jsmodule) private returns (bytes memory) {
-        string[] memory inputs = new string[](4);
+    function init1193(
+        string memory program,
+        string[] memory args
+    ) private returns (bytes memory) {
+        string[] memory inputs = new string[](args.length + 3);
         inputs[0] = "./forge-ipc-client";
         inputs[1] = "init";
-        inputs[2] = "node";
-        inputs[3] = jsmodule;
+        inputs[2] = program;
+        for (uint256 i = 0; i < args.length; i++) {
+            inputs[i + 3] = args[i];
+        }
         return vm.ffi(inputs);
     }
 

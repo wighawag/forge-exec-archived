@@ -46,7 +46,7 @@ export type ToDecode<TParams extends readonly AbiParameter[] | readonly unknown[
 	types: Narrow<TParams>;
 	values: TParams extends readonly AbiParameter[] ? AbiParametersToPrimitiveTypes<TParams> : never;
 };
-export type ExecuteReturnResult<TParams extends readonly AbiParameter[] | readonly unknown[] = readonly unknown[]> =
+export type ExecuteReturnResult<TParams extends readonly AbiParameter[] | readonly unknown[] = AbiParameter[]> =
 	| string
 	| void
 	| ToDecode<TParams>;
