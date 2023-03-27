@@ -54,7 +54,6 @@ if (args[0] === 'init') {
 		// const clientID = 'executor';
 		// ipc.config.id = clientID;
 		ipc.config.retry = 1500;
-		ipc.config.delimiter = '\n';
 		ipc.config.rawBuffer = true;
 
 		ipc.connectTo(id, socketID, function () {
@@ -81,7 +80,6 @@ if (args[0] === 'init') {
 	// ipc.config.logger = () => {};
 	ipc.config.id = 'executor';
 	ipc.config.retry = 1500;
-	ipc.config.delimiter = '\n';
 	ipc.config.rawBuffer = true;
 
 	const socketID = args[1];

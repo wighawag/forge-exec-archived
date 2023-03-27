@@ -76,7 +76,6 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		ipc.config.logger = (...args) => console.log(`!!!IPC`, ...args);
 		// ipc.config.logger = () => {};
 		ipc.config.retry = 1500;
-		ipc.config.delimiter = '\n';
 		ipc.config.rawBuffer = true;
 
 		try {
