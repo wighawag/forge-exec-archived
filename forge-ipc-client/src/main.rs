@@ -7,6 +7,7 @@ use std::process::{Command, Stdio};
 use std::{thread, time};
 use ethabi::{encode, Token};
 use hex;
+use rand::prelude::*;
 
 use interprocess::local_socket::{LocalSocketStream, NameTypeSupport};
 
@@ -61,11 +62,13 @@ writeln!(file, "{}", args.join(","))?;
 
 if command.eq("init") {
     
+    let mut rng = rand::thread_rng();
+    let y: u32 = rng.gen();
     let name = {
         use NameTypeSupport::*;
         match NameTypeSupport::query() {
-            OnlyPaths | Both => "/tmp/app.world",
-            OnlyNamespaced => "@app.world",
+            OnlyPaths | Both => format!("/tmp/app.world-{}", y),
+            OnlyNamespaced => format!("@app.world-{}", y),
         }
     }.to_string();
 

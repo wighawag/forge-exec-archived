@@ -166,6 +166,7 @@ dependencies = [
  "ethabi",
  "hex",
  "interprocess",
+ "rand",
 ]
 
 [[package]]

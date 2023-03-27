@@ -14,3 +14,4 @@ authors = ["Ronan Sandford"]
  interprocess = { path = "lib/interprocess" }
  ethabi = "18.0.0"
  hex = "0.4.3"
+ rand = "0.8.5"
