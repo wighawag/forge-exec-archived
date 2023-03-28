@@ -72,7 +72,7 @@ export type Handler<T> = {request: EncodedRequest; resolution: (v: string) => Pr
 
 export type QueueElement<T> = {resolve: ResolveFunction<T>; handler: Handler<T>};
 
-export class ReverseIPCProvider<T extends ExecuteReturnResult> implements ForgeProvider {
+export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 	socketID: string;
 	socket: any;
 	resolveQueue: QueueElement<any>[] | undefined;
@@ -170,10 +170,90 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> implements ForgeP
 		}
 	}
 
+	private wrapHandler<T>(handler: Handler<T>) {
+		const promise = new Promise<T>((resolve) => {
+			this.resolveQueue.push({resolve, handler});
+			if (this.resolveQueue.length == 1) {
+				this.processPendingRequest();
+			}
+		});
+		return promise;
+	}
+
 	private executeScript() {
+		const self = this;
+		const provider: ForgeProvider = {
+			call(tx: CallRequest): Promise<CallResponse> {
+				if (!tx.from) {
+					throw new Error(`no from specified ${JSON.stringify(tx)}`);
+				}
+				const request = {
+					data: encodeAbiParameters(
+						[{type: 'address'}, {type: 'bytes'}, {type: 'address'}, {type: 'uint256'}],
+						[tx.from, tx.data || '0x', tx.to || '0x0000000000000000000000000000000000000000', BigInt(tx.value || 0)]
+					),
+					type: 1,
+				};
+				return self.wrapHandler({
+					request,
+					resolution: async (v) => {
+						const result = decodeAbiParameters([{type: 'bool'}, {type: 'bytes'}], v as `0x${string}`);
+						return {
+							success: result[0],
+							data: result[1],
+						};
+					},
+				});
+			},
+			create(create: CreateRequest): Promise<`0x${string}`> {
+				const request = {
+					data: encodeAbiParameters(
+						[{type: 'address'}, {type: 'bytes'}, {type: 'uint256'}],
+						[create.from, create.data || '0x', BigInt(create.value || 0)]
+					),
+					type: 0xf0,
+				};
+				return self.wrapHandler({
+					request,
+					resolution: async (v) => {
+						// TODO handle normal tx
+						if (v === '0x0000000000000000000000000000000000000000') {
+							throw new Error(`Could not create contract`);
+						}
+						return v as `0x${string}`;
+					},
+				});
+			},
+			send(send: SendRequest): Promise<boolean> {
+				const request = {
+					data: encodeAbiParameters(
+						[{type: 'address'}, {type: 'bytes'}, {type: 'uint256'}],
+						[send.from, send.to, BigInt(send.value || 0)]
+					),
+					type: 0xf0,
+				};
+				return self.wrapHandler({
+					request,
+					resolution: async (v) => {
+						return v == 'true' ? true : false;
+					},
+				});
+			},
+			balance(account: `0x${string}`): Promise<BigInt> {
+				const request = {
+					data: encodeAbiParameters([{type: 'address'}], [account]),
+					type: 31,
+				};
+				return self.wrapHandler({
+					request,
+					resolution: async (v) => BigInt(v),
+				});
+			},
+		};
+
 		console.error('!!! EXECUTING SCRIPT');
 		try {
-			const promiseOrResult = this.script(this);
+			const promiseOrResult = this.script(provider);
 			if (promiseOrResult instanceof Promise) {
 				promiseOrResult
 					.then((v) => {
@@ -243,82 +323,5 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> implements ForgeP
 			console.error(`!!! INVALID RESPONSE, need to start with "terminate:", or "response:": ${data}`);
 			exitProcess(1);
 		}
-	}
-
-	private wrapHandler<T>(handler: Handler<T>) {
-		const promise = new Promise<T>((resolve) => {
-			this.resolveQueue.push({resolve, handler});
-			if (this.resolveQueue.length == 1) {
-				this.processPendingRequest();
-			}
-		});
-		return promise;
-	}
-
-	call(tx: CallRequest): Promise<CallResponse> {
-		if (!tx.from) {
-			throw new Error(`no from specified ${JSON.stringify(tx)}`);
-		}
-		const request = {
-			data: encodeAbiParameters(
-				[{type: 'address'}, {type: 'bytes'}, {type: 'address'}, {type: 'uint256'}],
-				[tx.from, tx.data || '0x', tx.to || '0x0000000000000000000000000000000000000000', BigInt(tx.value || 0)]
-			),
-			type: 1,
-		};
-		return this.wrapHandler({
-			request,
-			resolution: async (v) => {
-				const result = decodeAbiParameters([{type: 'bool'}, {type: 'bytes'}], v as `0x${string}`);
-				return {
-					success: result[0],
-					data: result[1],
-				};
-			},
-		});
-	}
-	create(create: CreateRequest): Promise<`0x${string}`> {
-		const request = {
-			data: encodeAbiParameters(
-				[{type: 'address'}, {type: 'bytes'}, {type: 'uint256'}],
-				[create.from, create.data || '0x', BigInt(create.value || 0)]
-			),
-			type: 0xf0,
-		};
-		return this.wrapHandler({
-			request,
-			resolution: async (v) => {
-				// TODO handle normal tx
-				if (v === '0x0000000000000000000000000000000000000000') {
-					throw new Error(`Could not create contract`);
-				}
-				return v as `0x${string}`;
-			},
-		});
-	}
-	send(send: SendRequest): Promise<boolean> {
-		const request = {
-			data: encodeAbiParameters(
-				[{type: 'address'}, {type: 'bytes'}, {type: 'uint256'}],
-				[send.from, send.to, BigInt(send.value || 0)]
-			),
-			type: 0xf0,
-		};
-		return this.wrapHandler({
-			request,
-			resolution: async (v) => {
-				return v == 'true' ? true : false;
-			},
-		});
-	}
-	balance(account: `0x${string}`): Promise<BigInt> {
-		const request = {
-			data: encodeAbiParameters([{type: 'address'}], [account]),
-			type: 31,
-		};
-		return this.wrapHandler({
-			request,
-			resolution: async (v) => BigInt(v),
-		});
 	}
 }
