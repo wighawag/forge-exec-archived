@@ -1,9 +1,9 @@
 import * as ipcModule from '@achrinza/node-ipc';
 const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix issue with cjs
 import fs from 'node:fs';
-import {EIP1193GetBalanceRequest, EIP1193ProviderWithoutEvents, EIP1193Request, EIP1193TransactionData} from 'eip-1193';
 import {encodeAbiParameters} from 'viem';
 import type {AbiParameter, AbiParametersToPrimitiveTypes, Narrow} from 'abitype';
+import {BalanceRequest, ForgeProvider, ForgeRequest, TransactionRequest} from './types';
 
 const logPath = './.ipc.log'; // `.ipc_${process.pid}.log`
 const access = fs.createWriteStream(logPath, {flags: 'a'});
@@ -62,7 +62,7 @@ export type ExecuteReturnResult<TParams extends readonly AbiParameter[] | readon
 	| void
 	| ToDecode<TParams>;
 
-export type ExecuteFunction<T extends ExecuteReturnResult> = (provider: EIP1193ProviderWithoutEvents) => T | Promise<T>;
+export type ExecuteFunction<T extends ExecuteReturnResult> = (provider: ForgeProvider) => T | Promise<T>;
 
 type ResolveFunction<T = any> = (response: T) => void;
 
@@ -245,18 +245,18 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		}
 	}
 
-	request(args: EIP1193Request): Promise<any> {
+	request(args: ForgeRequest): Promise<any> {
 		const promise = new Promise((resolve) => {
 			let handler: Handler<any>;
-			switch (args.method) {
-				case 'eth_sendTransaction':
-					handler = this.eth_sendTransaction(args.params);
+			switch (args.type) {
+				case 'transaction':
+					handler = this.eth_sendTransaction(args.data);
 					break;
-				case 'eth_getBalance':
-					handler = this.eth_getBalance(args.params);
+				case 'balance':
+					handler = this.eth_getBalance(args.data);
 					break;
 				default:
-					throw new Error(`method "${args.method}" not supported`);
+					throw new Error(`method "${(args as any).type}" not supported`);
 			}
 
 			this.resolveQueue.push({resolve, handler});
@@ -267,7 +267,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		return promise;
 	}
 
-	eth_sendTransaction([tx]: [EIP1193TransactionData]): Handler<any> {
+	eth_sendTransaction(tx: TransactionRequest): Handler<any> {
 		if (!tx.from) {
 			throw new Error(`no from specified ${JSON.stringify(tx)}`);
 		}
@@ -290,12 +290,9 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		};
 	}
 
-	eth_getBalance(params: EIP1193GetBalanceRequest['params']): Handler<any> {
-		if (params.length > 1) {
-			throw new Error(`blockTag param not supported`);
-		}
+	eth_getBalance(params: BalanceRequest): Handler<any> {
 		const request = {
-			data: encodeAbiParameters([{type: 'address'}], [params[0]]) as `0x${string}`,
+			data: encodeAbiParameters([{type: 'address'}], [params.account]),
 			type: 31,
 		};
 		return {

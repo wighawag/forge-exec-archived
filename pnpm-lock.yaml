@@ -31,9 +31,6 @@ importers:
       abitype:
         specifier: ^0.7.1
         version: 0.7.1(typescript@4.9.5)
-      eip-1193:
-        specifier: ^0.2.5
-        version: 0.2.5
       tsup:
         specifier: ^6.7.0
         version: 6.7.0(typescript@4.9.5)
@@ -461,10 +458,6 @@ packages:
     resolution: {integrity: sha512-wK2sCs4feiiJeFXn3zvY0p41mdU5VUgbgs1rNsc/y5ngFUijdWd+iIN8eoyuZHKB8xN6BL4PdWmzqFmxNg6V2w==}
     engines: {node: '>=6.0.0'}
     dev: false
-
-  /eip-1193@0.2.5:
-    resolution: {integrity: sha512-zDA+VRO/uSZ/GF+VJM+Blgg1Ue/6n7KCvVyZVEsCF4F4LcdNDs6XdpJqA7bH2Ekkc/n1Z5ZJ5CS6qs3NY8HvFw==}
-    dev: true
 
   /esbuild@0.17.13:
     resolution: {integrity: sha512-4ixMwdErBcQHgTBeoxnowENCPKWFAGxgTyKHMK8gqn9sZaC7ZNWFKtim16g2rzQ2b/FYyy3lIUUJboFtjolhqg==}

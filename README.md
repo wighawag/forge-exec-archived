@@ -70,7 +70,7 @@ execute(async (provider) => {
 });
 ```
 
-for now, only eth_sendTransaction is supported
+for now, only eth_sendTransaction and eth_getBalance is supported
 
 ### Example
 
