@@ -5,7 +5,7 @@ export type Address = String0x;
 export type BytesData = String0x;
 
 export type CallRequest = {
-	from: AbiParameterToPrimitiveType<{type: 'address'}>;
+	from?: AbiParameterToPrimitiveType<{type: 'address'}>;
 	to?: AbiParameterToPrimitiveType<{type: 'address'}>;
 	data?: AbiParameterToPrimitiveType<{type: 'bytes'}>;
 	value?: AbiParameterToPrimitiveType<{type: 'uint256'}>;
@@ -13,13 +13,13 @@ export type CallRequest = {
 export type CallResponse = {success: boolean; data: BytesData};
 
 export type CreateRequest = {
-	from: AbiParameterToPrimitiveType<{type: 'address'}>;
+	from?: AbiParameterToPrimitiveType<{type: 'address'}>;
 	data?: AbiParameterToPrimitiveType<{type: 'bytes'}>;
 	value?: AbiParameterToPrimitiveType<{type: 'uint256'}>;
 };
 
 export type SendRequest = {
-	from: AbiParameterToPrimitiveType<{type: 'address'}>;
+	from?: AbiParameterToPrimitiveType<{type: 'address'}>;
 	to: AbiParameterToPrimitiveType<{type: 'address'}>;
 	value: AbiParameterToPrimitiveType<{type: 'uint256'}>;
 };

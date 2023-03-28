@@ -5,6 +5,8 @@ import {decodeAbiParameters, encodeAbiParameters} from 'viem';
 import type {AbiParameter, AbiParametersToPrimitiveTypes, Narrow} from 'abitype';
 import {CallRequest, CallResponse, CreateRequest, ForgeProvider, SendRequest} from './types';
 
+const AddressZero = '0x0000000000000000000000000000000000000000';
+
 const logPath = './.ipc.log'; // `.ipc_${process.pid}.log`
 const access = fs.createWriteStream(logPath, {flags: 'a'});
 if (process.env.FORGE_EXEC_PROCESS_LOGS === '') {
@@ -190,7 +192,12 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 				const request = {
 					data: encodeAbiParameters(
 						[{type: 'address'}, {type: 'bytes'}, {type: 'address'}, {type: 'uint256'}],
-						[tx.from, tx.data || '0x', tx.to || '0x0000000000000000000000000000000000000000', BigInt(tx.value || 0)]
+						[
+							tx.from || AddressZero,
+							tx.data || '0x',
+							tx.to || '0x0000000000000000000000000000000000000000',
+							BigInt(tx.value || 0),
+						]
 					),
 					type: 1,
 				};
@@ -209,7 +216,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 				const request = {
 					data: encodeAbiParameters(
 						[{type: 'address'}, {type: 'bytes'}, {type: 'uint256'}],
-						[create.from, create.data || '0x', BigInt(create.value || 0)]
+						[create.from || AddressZero, create.data || '0x', BigInt(create.value || 0)]
 					),
 					type: 0xf0,
 				};
@@ -217,7 +224,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 					request,
 					resolution: async (v) => {
 						// TODO handle normal tx
-						if (v === '0x0000000000000000000000000000000000000000') {
+						if (v === AddressZero) {
 							throw new Error(`Could not create contract`);
 						}
 						return v as `0x${string}`;
@@ -228,7 +235,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 				const request = {
 					data: encodeAbiParameters(
 						[{type: 'address'}, {type: 'bytes'}, {type: 'uint256'}],
-						[send.from, send.to, BigInt(send.value || 0)]
+						[send.from || AddressZero, send.to, BigInt(send.value || 0)]
 					),
 					type: 0xf0,
 				};

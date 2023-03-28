@@ -5,6 +5,8 @@ import "forge-std/Test.sol";
 
 import {Exec} from "forge-exec/Exec.sol";
 
+address constant FirstContract = 0x5FbDB2315678afecb367f032d93F642f64180aa3;
+
 contract ExecTest is Test {
     function setUp() public {
         string[] memory args = new string[](1);
@@ -22,22 +24,22 @@ contract ExecTest is Test {
     }
 
     function testDeplyment() public view {
-        bytes memory code = 0xB318d82866cd9f7d7a55dbbF0a80f787B72BF97C.code;
+        bytes memory code = FirstContract.code;
         assert(code.length > 0);
     }
 
     function testDeplymentAgain() public view {
-        bytes memory code = 0xB318d82866cd9f7d7a55dbbF0a80f787B72BF97C.code;
+        bytes memory code = FirstContract.code;
         assert(code.length > 0);
     }
 
     function testDeplymentAgainAndAgain() public view {
-        bytes memory code = 0xB318d82866cd9f7d7a55dbbF0a80f787B72BF97C.code;
+        bytes memory code = FirstContract.code;
         assert(code.length > 0);
     }
 
     function testDeplymentAgainAndAgainAndAgain() public view {
-        bytes memory code = 0xB318d82866cd9f7d7a55dbbF0a80f787B72BF97C.code;
+        bytes memory code = FirstContract.code;
         assert(code.length > 0);
     }
 }
