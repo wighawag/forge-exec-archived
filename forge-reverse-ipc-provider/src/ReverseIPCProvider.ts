@@ -28,6 +28,12 @@ console.log(`!!! pid: ${process.pid}`);
 // console.time('PROCESS');
 
 function exitProcess(errorCode?: number, alwaysInstant?: boolean) {
+	try {
+		ipc.server.stop();
+	} catch (err) {
+		console.error(err);
+	}
+
 	if (alwaysInstant) {
 		process.exit(errorCode);
 	} else {
@@ -39,6 +45,11 @@ function exitProcess(errorCode?: number, alwaysInstant?: boolean) {
 
 process.on('uncaughtException', function (err) {
 	console.error(err);
+	try {
+		ipc.server.stop();
+	} catch (err) {
+		console.error(err);
+	}
 	setTimeout(() => process.exit(1), 100);
 });
 
@@ -65,12 +76,30 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 	socketID: string;
 	socket: any;
 	resolveQueue: QueueElement<any>[] | undefined;
+	timeout: NodeJS.Timeout | undefined;
 
 	constructor(protected script: ExecuteFunction<T>, socketID: string) {
 		this.socketID = socketID;
 	}
 
+	onTimeout() {
+		console.error(`!!! TIMEOUT`);
+		exitProcess(1, true);
+	}
+
+	resetTimeout() {
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+		}
+		// 20 second timeout
+		// TODO config for debugging purpose might be useful
+		this.timeout = setTimeout(this.onTimeout.bind(this), 20000);
+	}
+
 	serve() {
+		// we start the timeout on start
+		this.resetTimeout();
+
 		setInterval(() => console.log(`!!! pid: ${process.pid}`), 20000);
 
 		ipc.config.logger = (...args) => console.log(`!!!IPC`, ...args);
@@ -175,14 +204,17 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 
 	processPendingRequest() {
 		const next = this.resolveQueue[0];
-		const withEnvelope = encodeAbiParameters(
+		const request = encodeAbiParameters(
 			[{type: 'uint32'}, {type: 'bytes'}],
 			[next.handler.request.type, next.handler.request.data]
 		);
-		ipc.server.emit(this.socket, withEnvelope + `\n`);
+		ipc.server.emit(this.socket, request + `\n`);
 	}
 
 	onMessage(response, socket) {
+		// we reset the timeout on each message we receive.
+		this.resetTimeout();
+
 		this.socket = socket;
 		const data = response.toString('utf8').slice(0, -1);
 

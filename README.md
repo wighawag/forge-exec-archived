@@ -1,28 +1,22 @@
 # <h1 align="center"> forge-exec </h1>
 
-**Execute program using a reverse IPC service from Solidity scripts/tests**
-
-It currently only support js module but should not be hard to add support for any external program
-
-They just need to talk the same format through the given IPC socket
+**Execute program from forge with a 2-way communication channel between both**
 
 ## Installation
+
+Install `forge-exec` as git submodules in your foundry project
 
 ```
 forge install wighawag/forge-exec
 ```
 
-You also need to use [nodejs]()/[npm]() and setup a project
+Install `forge-ipc-client` on your machine, source code can be found in [forge-ipc-client](./forge-ipc-client/)
 
 ```
-npm init
+cargo install forge-ipc-client
 ```
 
-and install `forge-reverse-ipc-provider` package which will let the script to communicate back with forge
-
-```
-npm i -D forge-reverse-ipc-provider
-```
+This tool will allow forge-exec to have a 2-way commincation channel with the program being executed. that was set it apart from basic ffi mechanism.
 
 ## Usage
 
@@ -35,12 +29,28 @@ import {Exec} from "forge-exec/Exec.sol";
 1. Execute an external script:
 
 ```solidity
-Exec.exexute('./example.js);
+Exec.exexute('./example.js');
 ```
 
 1. You must enable [ffi](https://book.getfoundry.sh/cheatcodes/ffi.html) in order to use the library. You can either pass the `--ffi` flag to any forge commands you run (e.g. `forge script Script --ffi`), or you can add `ffi = true` to your `foundry.toml` file.
 
 1. In example.js you ll need to create an IPC server to communicate back with forge. We provide a package to handle that for you. You can simply write code like that:
+
+## Javascript
+
+You also need to use [nodejs]()/[npm]() and setup a project
+
+```
+npm init
+```
+
+and then install `forge-reverse-ipc-provider` package which will let the script to communicate back with forge
+
+```
+npm i -D forge-reverse-ipc-provider
+```
+
+Now you can write your js script this way
 
 ```js
 import { execute } from "forge-reverse-ipc-provider";
@@ -62,9 +72,13 @@ execute(async (provider) => {
 
 for now, only eth_sendTransaction is supported
 
-## Example
+### Example
 
-We have example usage for both [tests](./demo/test/Exec.t.sol) and [scripts](./demo/script/ExecDemo.s.sol). See [example.js](./demo/example.js) in the [demo folder](./demo/)
+We have example usage for both [tests](./demo-js/test/Exec.t.sol) and [scripts](./demo-js/script/ExecDemo.s.sol). See [example.js](./demo-js/example.js) in the [demo folder](./demo-js/)
+
+## Rust
+
+`forge-exec` is agnostic to what program you execute, you just need to follow the ipc communication protocol. Here is a very basic example in rust.
 
 ## Contributing
 

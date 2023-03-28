@@ -2,11 +2,14 @@
   "name": "forge-exec-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "",
-  "keywords": [],
-  "author": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  }
+  "description": "The monorep for forge-exec",
+  "keywords": [
+    "forge",
+    "foundry",
+    "ipc",
+    "exec",
+    "script"
+  ],
+  "author": "Ronan Sandford <wighawag@gmail.com> (https://ronan.eth.limo/)",
+  "license": "MIT"
 }
