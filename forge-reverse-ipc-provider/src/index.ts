@@ -1,5 +1,5 @@
 import {ExecuteReturnResult, ReverseIPCProvider} from './ReverseIPCProvider';
-import {ForgeProvider} from './types';
+import {Forge} from './types';
 
 const args = process.argv.slice(2);
 const lastArg = args[args.length - 1];
@@ -15,7 +15,7 @@ if (!socketID) {
 console.log(`socketID: ${socketID}`);
 console.log(`args: "${args.join('" "')}"`);
 
-export function execute<T extends ExecuteReturnResult>(func: (provider: ForgeProvider) => T | Promise<T>) {
+export function execute<T extends ExecuteReturnResult>(func: (forge: Forge) => T | Promise<T>) {
 	const provider = new ReverseIPCProvider(func, socketID);
 	provider.serve();
 }

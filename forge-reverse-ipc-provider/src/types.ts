@@ -24,7 +24,7 @@ export type SendRequest = {
 	value: AbiParameterToPrimitiveType<{type: 'uint256'}>;
 };
 
-export interface ForgeProvider {
+export interface Forge {
 	call(request: CallRequest): Promise<CallResponse>;
 	send(request: SendRequest): Promise<boolean>;
 	// static_call(request: TransactionRequest): Promise<>;

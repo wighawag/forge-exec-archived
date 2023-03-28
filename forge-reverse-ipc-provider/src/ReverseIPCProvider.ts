@@ -3,7 +3,7 @@ const ipc = ipcModule.default?.default || ipcModule.default || ipcModule; // fix
 import fs from 'node:fs';
 import {decodeAbiParameters, encodeAbiParameters} from 'viem';
 import type {AbiParameter, AbiParametersToPrimitiveTypes, Narrow} from 'abitype';
-import {CallRequest, CallResponse, CreateRequest, ForgeProvider, SendRequest} from './types';
+import {CallRequest, CallResponse, CreateRequest, Forge, SendRequest} from './types';
 
 const AddressZero = '0x0000000000000000000000000000000000000000';
 
@@ -64,7 +64,7 @@ export type ExecuteReturnResult<TParams extends readonly AbiParameter[] | readon
 	| void
 	| ToDecode<TParams>;
 
-export type ExecuteFunction<T extends ExecuteReturnResult> = (provider: ForgeProvider) => T | Promise<T>;
+export type ExecuteFunction<T extends ExecuteReturnResult> = (forge: Forge) => T | Promise<T>;
 
 type ResolveFunction<T = any> = (response: T) => void;
 
@@ -184,7 +184,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 
 	private executeScript() {
 		const self = this;
-		const provider: ForgeProvider = {
+		const forge: Forge = {
 			call(tx: CallRequest): Promise<CallResponse> {
 				if (!tx.from) {
 					throw new Error(`no from specified ${JSON.stringify(tx)}`);
@@ -260,7 +260,7 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 
 		console.error('!!! EXECUTING SCRIPT');
 		try {
-			const promiseOrResult = this.script(provider);
+			const promiseOrResult = this.script(forge);
 			if (promiseOrResult instanceof Promise) {
 				promiseOrResult
 					.then((v) => {
