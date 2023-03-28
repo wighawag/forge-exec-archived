@@ -5,3 +5,4 @@ uninstall.js
 pre-install.js
 .ipc*
 .executor*
+.rust-executor*

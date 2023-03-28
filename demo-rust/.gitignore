@@ -6,3 +6,4 @@ out/
 broadcast/*/31337/
 .rust-executor*
 forge-ipc-client
+.rust-ipc-server*
