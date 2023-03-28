@@ -87,6 +87,9 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 		exitProcess(1, true);
 	}
 
+	stopTimeout() {
+		clearTimeout(this.timeout);
+	}
 	resetTimeout() {
 		if (this.timeout) {
 			clearTimeout(this.timeout);
@@ -208,12 +211,15 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 			[{type: 'uint32'}, {type: 'bytes'}],
 			[next.handler.request.type, next.handler.request.data]
 		);
+		// we restart the timeout
+		this.resetTimeout();
 		ipc.server.emit(this.socket, request + `\n`);
 	}
 
 	onMessage(response, socket) {
-		// we reset the timeout on each message we receive.
-		this.resetTimeout();
+		// we stop the timeout on each message we receive.
+		// we will restart it on the request made , see
+		this.stopTimeout();
 
 		this.socket = socket;
 		const data = response.toString('utf8').slice(0, -1);
