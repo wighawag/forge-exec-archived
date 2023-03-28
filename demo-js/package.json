@@ -1,5 +1,5 @@
 {
-  "name": "demo",
+  "name": "forge-exec-js-demo",
   "private": true,
   "type": "module",
   "devDependencies": {

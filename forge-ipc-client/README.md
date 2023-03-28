@@ -1,28 +1,34 @@
 # forge-ipc-client
 
-ipc client that let forge connect to an ipc server while executing solidity.
+Execute a program as a separate process and connect to it via IPC.
+
+Used by forge-exec to establish a 2-way communication channel with [forge](https://github.com/foundry-rs/foundry/tree/master/forge)
+
+Because forge expect ffi output to be given to stdout after program exit, `forge-ipc-client` is executed for every message pair and exit on each reply from the program.
 
 ## how does it work?
 
-`forge-exec` is used in your forge project and will do the following
+[forge-exec](https://github.com/wighawag/forge-exec) is used in your forge project and will do the following
 
 - will ffi execute `forge-ipc-client init <program> [...<args>]`
 - `forge-ipc-client` (this package) will then execute the program along with the provided argument and create a new process for it
 - When doing so it will also apend a randonly generated socket/named-pipe path/name, that we call the `socketID` (prefixed with `ipc:`)
 - the program will thus be called via `<program> [...<args>] ipc:<socketID>`
 - That program need to create an ipc server to listen on the given `socketID` as soon as it can.
-- `forge-ipc-client` will then attempt to connect to that socket/named-pipe for 3 seconds and upon success will print to `stdin` the `socketID` as an abi encoded string and exit.
+- `forge-ipc-client` will then attempt to connect to that socket/named-pipe for 3 seconds and upon success will print to `stdout` the `socketID` as an abi encoded string and exit.
 - forge will pick that up and `forge-exec` will now perform a new ffi call : `forge-ipc-client exec <socketID> 0x`
 - `forge-ipc-client` will detect an `exec` as first argument and connect to the ipc server created by the `program`
 - Once connected it will send the data argument to it (first call is always `0x`)
-- the `program` need to be thus stay alive and listen for these call
+- This means that the `program` can (and need to) stay alive and listen for these call
 - Upon receiveing the first call `0x` the program should start executing its user code.
 - When it need to make a request back to forge it will simply have to reply on the ipc socket established with abi encoded data (see [format](#format) below)
-- `forge-ipc-client` will write that to `stdin` on reception and exit immediatly (`program` continue to run)
+- `forge-ipc-client` will write that to `stdin` on reception and exit immediatly (the `program` continue to run though, unless it execute its last reply (termination))
 - `forge-exec` will pick up the data and interpret it as a request. One of this request is to terminate and can include an data the `program` may wish to return.
 - if the data was not a termination request, `forge-exec` will execute the request (currently only send_transaction and getBalance is supported) and send that data back
 - It send the data back via `forge-ipc-client exec <socketID> <data>`
-- this get repeated until the program send the terminate request
+- this get repeated until the program send the termination request
+- On some error case `forge-exec` can also call the `terminate` request to ask the program to stop, this will cause a revert on forge side.
+- Currently abi decoding can fails on `forge-exec` side and the program will not be abel to be notified. As such the program should handle a timeout case to stop its ipc server to not hang on os resources.
 
 ## ipc-server implementations
 
@@ -50,6 +56,10 @@ execute(async (provider) => {
   };
 });
 ```
+
+`forge-reverse-ipc-provider` also handle timeout.
+
+Note that while nodejs has a startup overhead, once the program is executed it stay alive and so long complicate script are possible.
 
 ## format
 
