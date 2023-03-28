@@ -97,7 +97,8 @@ if command.eq("connect") {
     for i in 3..args.len() {
         program_args.push(&args[i]);
     }
-    program_args.push(&name);
+    let last_arg = format!("ipc:{}", name);
+    program_args.push(&last_arg);
 
     #[cfg(debug_assertions)]
     writeln!(file, "spawn {} {}", program, name)?;

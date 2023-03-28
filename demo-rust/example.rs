@@ -38,7 +38,16 @@ fn handle_error(conn: io::Result<LocalSocketStream>) -> Option<LocalSocketStream
 
 
 let args: Vec<String> = env::args().collect();
-let socket_id = &args[1];
+
+let mut splitted = args[1].split(":");
+let socket_id = match splitted.next() {
+    None => panic!("Expect to run with an ipc: arg"),
+    Some("ipc") => match splitted.next() {
+        None => panic!("no ipc path/name specified"),
+        Some(str) => str,
+    }
+    Some(_) => panic!("Expect to run with an ipc: arg"),
+};
 
 // Bind our listener.
 let listener = match LocalSocketListener::bind(socket_id.to_string()) {

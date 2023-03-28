@@ -42,8 +42,8 @@ if (args[0] === 'init') {
 	const socketID = '/tmp/app.world';
 	console.log('!!! initialization...');
 	const server = process.env.FORGE_EXECUTOR_LOGS
-		? fork(args[1], [socketID])
-		: fork(args[1], [socketID], {detached: true, silent: true});
+		? fork(args[1], [`ipc:${socketID}`])
+		: fork(args[1], [`ipc:${socketID}`], {detached: true, silent: true});
 	console.log(`!!! serverPID: ${server.pid}`);
 	const encoded = encodeAbiParameters([{type: 'string'}], [socketID]);
 	// console.log(`!!! ${encoded}`);
