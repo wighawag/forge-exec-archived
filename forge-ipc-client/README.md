@@ -59,10 +59,84 @@ execute(async (provider) => {
 
 `forge-reverse-ipc-provider` also handle timeout.
 
-Note that while nodejs has a startup overhead, once the program is executed it stay alive and so long complicate script are possible.
+Note that while nodejs has a startup overhead, once the program is executed it stays alive and so long complicate script are possible.
 
 ## format
 
 The format of communication between the ipc client and server is as follow:
 
-// TODO
+### From the program
+
+The program (which act as the ipc server) can only send one type of message to the ipc client.
+
+All of them must end with the `\n` character which act as the ipc message delimiter
+
+These are abi encoded message represented as hex string and are forwarded as is (minus the `\n` character) to `forge-exec` solidity code.
+
+The format to encode is a tuple `(uint32, bytes)` where the uint32 represent the type of request and bytes is the abi encoded data specific to the request type.
+
+The request type `0` is the termination signal and indicate that the program has finished executing, the `bytes` data represent whatever the program want and is what is returned by `forge-exec` `execute` function call.
+
+Else there is currently 2 more request with more going to be added soon
+
+See [list of requests](#list-of-requests)
+
+### From forge
+
+there is only 2 type of data send to the ipc server: `response` and `terminate`.
+
+All of them must end with the `\n` character
+
+#### Responses
+
+Responses are prefixed with `response:`
+
+the first message the program actually receive is a special one : `response:0x\n` and just indicate that the program can start executing and make request back to forge.
+
+Apart form this special request, there are currently on 2 types of request that a program can send back to forge and so there are only 2 types of response as of now
+
+See [list of requests](#list-of-requests)
+
+##### examples
+
+- `"response:<data send back from forge as string>\n"`
+
+#### Termination
+
+Termination request are prefixed with `terminate:`
+
+After the prefix is the error message
+
+##### examples
+
+- `"terminate:Something Wrong Happened\n"`
+
+### List of Requests
+
+#### termination
+
+#### from the program
+
+example:
+
+`encode(["uint32", "bytes"],[0, "0x01"])`
+
+This will terminate execution and return 0x1 as bytes
+
+Nothing is expected from forge back
+
+### send transaction
+
+#### from the program
+
+example:
+
+`encode(["uint32", "bytes"],[1, encode(["","","",""], [])])`
+
+#### from `forge-ipc-client`
+
+example:
+
+`"response:0xFFEEFFEEFFEEFFEEFFEEFFEEFFEEFFEEFFEEFFEE\n"`
+
+this return the deployed contract address

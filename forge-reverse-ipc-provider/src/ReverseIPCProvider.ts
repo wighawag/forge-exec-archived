@@ -230,17 +230,18 @@ export class ReverseIPCProvider<T extends ExecuteReturnResult> {
 			// TODO good terminate ?
 			console.error(`!!! TERMINATING: ${data.slice(10)}`);
 			exitProcess(1);
-		} else if (data.startsWith('0x')) {
+		} else if (data.startsWith('response:')) {
 			if (!this.resolveQueue) {
 				this.resolveQueue = [];
 				this.executeScript();
 				// console.error(`!!! ERRRO no request to resolve`);
 				// must be the first message, we can execute
 			} else {
-				this.resolvePendingRequest(data);
+				this.resolvePendingRequest(data.slice(9));
 			}
 		} else {
-			console.error(`!!! INVALID RESPONSE, need to start with "terminate", or "0x": ${data}`);
+			console.error(`!!! INVALID RESPONSE, need to start with "terminate:", or "response:": ${data}`);
+			exitProcess(1);
 		}
 	}
 

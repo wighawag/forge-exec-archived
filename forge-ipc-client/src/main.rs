@@ -133,7 +133,7 @@ if command.eq("connect") {
 } else {
     let name = args[2].as_str();
     if command.eq("exec") {
-        let data = args[3].as_str();
+        let data = format!("response:{}", args[3].as_str());
         
         // we send the data from forge to our running process (who is also running an ipc server on socket/mamed pipe idified by `name`)
         let request = connect_and_send(name, 0, 10, data.as_bytes())?;

@@ -90,7 +90,7 @@ if (args[0] === 'init') {
 		ipc.connectTo(id, socketID, function () {
 			ipc.of[id].on('connect', function () {
 				console.log(`!!! connected to ${socketID}`);
-				ipc.of[id].emit(args[2] + `\n`);
+				ipc.of[id].emit(`response:${args[2]}\n`);
 			});
 			ipc.of[id].on('disconnect', function () {
 				// console.log(`!!! disconnected`);
@@ -108,7 +108,7 @@ if (args[0] === 'init') {
 	} else if (args[0] === 'terminate') {
 		ipc.connectTo(id, socketID, function () {
 			ipc.of[id].on('connect', function () {
-				ipc.of[id].emit(`terminate:${args[2]}` + `\n`);
+				ipc.of[id].emit(`terminate:${args[2]}\n`);
 				oldStdoutWrite('0x');
 				process.exit();
 			});
