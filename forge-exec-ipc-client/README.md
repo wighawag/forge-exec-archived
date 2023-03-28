@@ -2,7 +2,7 @@
 
 Execute a program as a separate process and connect to it via IPC.
 
-Used by forge-exec to establish a 2-way communication channel with [forge](https://github.com/foundry-rs/foundry/tree/master/forge)
+Used by [forge-exec](https://github.com/wighawag/forge-exec) to establish a open 2-way communication channel with [forge](https://github.com/foundry-rs/foundry/tree/master/forge)
 
 Because forge expect ffi output to be given to stdout after program exit, `forge-exec-ipc-client` is executed for every message pair and exit on each reply from the program.
 
@@ -38,18 +38,11 @@ There is currentlty one implemented in typescript which abstract away the flow a
 
 ```js
 import { execute } from "forge-exec-ipc-server";
-execute(async (provider) => {
-  const address = await provider.request({
-    method: "eth_sendTransaction",
-    params: [
-      {
-        from: "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
-        to: "0x0000000000000000000000000000000000000000",
-        data: "0x608060405234801561001057600080fd5b5060f78061001f6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fb5c1cb1460415780638381f58a146053578063d09de08a14606d575b600080fd5b6051604c3660046083565b600055565b005b605b60005481565b60405190815260200160405180910390f35b6051600080549080607c83609b565b9190505550565b600060208284031215609457600080fd5b5035919050565b60006001820160ba57634e487b7160e01b600052601160045260246000fd5b506001019056fea2646970667358221220f0cfb2159c518c3da0ad864362bad5dc0715514a9ab679237253d506773a0a1b64736f6c63430008130033",
-      },
-    ],
+execute(async (forge) => {
+  const address = await forge.create({
+    from: "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+    data: "0x608060405234801561001057600080fd5b5060f78061001f6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fb5c1cb1460415780638381f58a146053578063d09de08a14606d575b600080fd5b6051604c3660046083565b600055565b005b605b60005481565b60405190815260200160405180910390f35b6051600080549080607c83609b565b9190505550565b600060208284031215609457600080fd5b5035919050565b60006001820160ba57634e487b7160e01b600052601160045260246000fd5b506001019056fea2646970667358221220f0cfb2159c518c3da0ad864362bad5dc0715514a9ab679237253d506773a0a1b64736f6c63430008130033",
   });
-
   return {
     types: [{ type: "address" }],
     values: [address],
