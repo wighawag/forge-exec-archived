@@ -100,7 +100,7 @@ if command.eq("connect") {
     program_args.push(&name);
 
     #[cfg(debug_assertions)]
-    writeln!(file, "spawn {}", program)?;
+    writeln!(file, "spawn {} {}", program, name)?;
 
     Command::new(program)
         // .stdin(Stdio::null())
