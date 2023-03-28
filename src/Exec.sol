@@ -115,11 +115,9 @@ library Exec {
     }
 
     function handleSender(address from, bool broadcast) internal {
-        if (from == address(0)) {
-            vm.broadcast();
-        } else if (broadcast) {
+        if (broadcast) {
             vm.broadcast(from);
-        } else {
+        } else if (from != address(0)) {
             // if we do not broadcast, we can prank the address to act as if we had the private key
             // TODO make it an option in the request data ?
             vm.prank(from, from);
