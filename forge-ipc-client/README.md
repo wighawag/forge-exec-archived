@@ -37,7 +37,7 @@ While you could write the ipc handling yourself in the program executed by `forg
 There is currentlty one implemented in typescript which abstract away the flow and let you write the following:
 
 ```js
-import { execute } from "forge-reverse-ipc-provider";
+import { execute } from "forge-exec-ipc-server";
 execute(async (provider) => {
   const address = await provider.request({
     method: "eth_sendTransaction",
@@ -57,7 +57,7 @@ execute(async (provider) => {
 });
 ```
 
-`forge-reverse-ipc-provider` also handle timeout.
+`forge-exec-ipc-server` also handle timeout.
 
 Note that while nodejs has a startup overhead, once the program is executed it stays alive and so long complicate script are possible.
 

@@ -1,6 +1,6 @@
 // @ts-check
-import { execute } from "forge-reverse-ipc-provider";
-// const { execute } = require("forge-reverse-ipc-provider");
+import { execute } from "forge-exec-ipc-server";
+// const { execute } = require("forge-exec-ipc-server");
 
 execute(async (forge) => {
   const results = await Promise.all([

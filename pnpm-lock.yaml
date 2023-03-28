@@ -6,14 +6,14 @@ importers:
 
   demo-js:
     devDependencies:
-      forge-reverse-ipc-provider:
+      forge-exec-ipc-server:
         specifier: workspace:*
-        version: link:../forge-reverse-ipc-provider
+        version: link:../forge-exec-ipc-server
       tsx:
         specifier: ^3.12.6
         version: 3.12.6
 
-  forge-reverse-ipc-provider:
+  forge-exec-ipc-server:
     dependencies:
       '@achrinza/node-ipc':
         specifier: ^10.1.7

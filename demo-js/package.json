@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "forge-reverse-ipc-provider": "workspace:*",
+    "forge-exec-ipc-server": "workspace:*",
     "tsx": "^3.12.6"
   },
   "scripts": {

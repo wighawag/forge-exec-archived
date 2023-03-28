@@ -44,16 +44,16 @@ You also need to use [nodejs]()/[npm]() and setup a project
 npm init
 ```
 
-and then install `forge-reverse-ipc-provider` package which will let the script to communicate back with forge
+and then install `forge-exec-ipc-server` package which will let the script to communicate back with forge
 
 ```
-npm i -D forge-reverse-ipc-provider
+npm i -D forge-exec-ipc-server
 ```
 
 Now you can write your js script this way
 
 ```js
-import { execute } from "forge-reverse-ipc-provider";
+import { execute } from "forge-exec-ipc-server";
 
 execute(async (provider) => {
   const response = await provider.request({
