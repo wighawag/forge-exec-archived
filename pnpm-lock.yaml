@@ -8,12 +8,12 @@ importers:
     devDependencies:
       forge-exec-ipc-server:
         specifier: workspace:*
-        version: link:../forge-exec-ipc-server
+        version: link:../forge-exec-ipc-server-js
       tsx:
         specifier: ^3.12.6
         version: 3.12.6
 
-  forge-exec-ipc-server:
+  forge-exec-ipc-server-js:
     dependencies:
       '@achrinza/node-ipc':
         specifier: ^10.1.7
