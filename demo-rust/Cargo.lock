@@ -245,7 +245,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "forge-ipc-server-demo"
+name = "forge-exec-ipc-server-rust-demo"
 version = "0.0.0"
 dependencies = [
  "anyhow",

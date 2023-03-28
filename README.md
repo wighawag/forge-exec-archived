@@ -10,10 +10,10 @@ Install `forge-exec` as git submodules in your foundry project
 forge install wighawag/forge-exec
 ```
 
-Install `forge-ipc-client` on your machine, source code can be found in [forge-ipc-client](./forge-ipc-client/)
+Install `forge-exec-ipc-client` on your machine, source code can be found in [forge-exec-ipc-client](./forge-exec-ipc-client/)
 
 ```
-cargo install forge-ipc-client
+cargo install forge-exec-ipc-client
 ```
 
 This tool will allow forge-exec to have a 2-way commincation channel with the program being executed. that was set it apart from basic ffi mechanism.

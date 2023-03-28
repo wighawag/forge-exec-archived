@@ -239,7 +239,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "forge-ipc-client"
+name = "forge-exec-ipc-client"
 version = "0.1.0"
 dependencies = [
  "ethabi",

@@ -22,7 +22,7 @@ library Exec {
     ) internal returns (bytes memory result) {
         bytes memory init = init1193(program, args);
 
-        // we get the  processID from `forge-ipc-client`
+        // we get the  processID from `forge-exec-ipc-client`
         // it should alwys be correct
         string memory processID = abi.decode(init, (string));
 
@@ -126,8 +126,8 @@ library Exec {
         }
     }
 
-    /// @dev this call `forge-ipc-client` with the init command
-    /// `forge-ipc-client` will spawn the `program` in a sperate process
+    /// @dev this call `forge-exec-ipc-client` with the init command
+    /// `forge-exec-ipc-client` will spawn the `program` in a sperate process
     /// It will give that process a specific IPC socket/named pipe path to use
     /// and return it to forge as an abi encoded string
     /// @param program path to the executable
@@ -137,7 +137,7 @@ library Exec {
         string[] memory args
     ) private returns (bytes memory) {
         string[] memory inputs = new string[](args.length + 3);
-        inputs[0] = "./forge-ipc-client";
+        inputs[0] = "./forge-exec-ipc-client";
         inputs[1] = "init";
         inputs[2] = program;
         for (uint256 i = 0; i < args.length; i++) {
@@ -146,16 +146,16 @@ library Exec {
         return vm.ffi(inputs);
     }
 
-    /// @dev this call `forge-ipc-client` with the terminate command
-    /// `forge-ipc-client` will send the `terminate` messae via IPC to the program
+    /// @dev this call `forge-exec-ipc-client` with the terminate command
+    /// `forge-exec-ipc-client` will send the `terminate` messae via IPC to the program
     /// @param id the IPC socket/named-pipe path decoded from `init1193` call
-    /// @param errorMessage an error message that `forge-ipc-client` will forward to the program
+    /// @param errorMessage an error message that `forge-exec-ipc-client` will forward to the program
     function terminate1193(
         string memory id,
         string memory errorMessage
     ) private {
         string[] memory inputs = new string[](4);
-        inputs[0] = "./forge-ipc-client";
+        inputs[0] = "./forge-exec-ipc-client";
         inputs[1] = "terminate";
         inputs[2] = id;
         inputs[3] = errorMessage;
@@ -164,16 +164,16 @@ library Exec {
         revert(errorMessage);
     }
 
-    /// @dev this call `forge-ipc-client` with the exec command
-    /// `forge-ipc-client` will send the `exec` messae via IPC to the program
+    /// @dev this call `forge-exec-ipc-client` with the exec command
+    /// `forge-exec-ipc-client` will send the `exec` messae via IPC to the program
     /// @param id the IPC socket/named-pipe path decoded from `init1193` call
-    /// @param value the response encoded as string that `forge-ipc-client` will forward to the program
+    /// @param value the response encoded as string that `forge-exec-ipc-client` will forward to the program
     function call1193(
         string memory id,
         string memory value
     ) private returns (bytes memory) {
         string[] memory inputs = new string[](4);
-        inputs[0] = "./forge-ipc-client";
+        inputs[0] = "./forge-exec-ipc-client";
         inputs[1] = "exec";
         inputs[2] = id;
         inputs[3] = value;
