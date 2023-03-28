@@ -63,13 +63,7 @@ library Exec {
                     address payable to,
                     uint256 value
                 ) = abi.decode(requestData, (address, bytes, address, uint256));
-                if (broadcast) {
-                    vm.broadcast(from);
-                } else {
-                    // if we do not broadcast, we can prank the address to act as if we had the private key
-                    // TODO make it an option in the request data ?
-                    vm.prank(from, from);
-                }
+                handleSender(from, broadcast);
 
                 if (to != address(0)) {
                     (bool success, bytes memory returnData) = to.call{
@@ -91,13 +85,7 @@ library Exec {
                     requestData,
                     (address, bytes, uint256)
                 );
-                if (broadcast) {
-                    vm.broadcast(from);
-                } else {
-                    // if we do not broadcast, we can prank the address to act as if we had the private key
-                    // TODO make it an option in the request data ?
-                    vm.prank(from, from);
-                }
+                handleSender(from, broadcast);
 
                 address addr;
                 assembly {
@@ -111,13 +99,7 @@ library Exec {
                     requestData,
                     (address, address, uint256)
                 );
-                if (broadcast) {
-                    vm.broadcast(from);
-                } else {
-                    // if we do not broadcast, we can prank the address to act as if we had the private key
-                    // TODO make it an option in the request data ?
-                    vm.prank(from, from);
-                }
+                handleSender(from, broadcast);
 
                 bool success = to.send(value);
                 response = vm.toString(success);
@@ -129,6 +111,16 @@ library Exec {
             } else {
                 terminate1193(processID, "UNKNOWN_REQUEST_TYPE");
             }
+        }
+    }
+
+    function handleSender(address from, bool broadcast) internal {
+        if (broadcast) {
+            vm.broadcast(from);
+        } else {
+            // if we do not broadcast, we can prank the address to act as if we had the private key
+            // TODO make it an option in the request data ?
+            vm.prank(from, from);
         }
     }
 
