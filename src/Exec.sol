@@ -63,7 +63,6 @@ library Exec {
                     address payable to,
                     uint256 value
                 ) = abi.decode(requestData, (address, bytes, address, uint256));
-
                 if (broadcast) {
                     vm.broadcast(from);
                 } else {
@@ -73,26 +72,60 @@ library Exec {
                 }
 
                 if (to != address(0)) {
-                    if (data.length == 0) {
-                        (bool success, ) = to.call{value: value}(data);
-                        response = success ? "0x01" : "0x00";
-                    } else {
-                        bool success = to.send(value);
-                        response = success ? "0x01" : "0x00";
-                    }
+                    (bool success, bytes memory returnData) = to.call{
+                        value: value
+                    }(data);
+                    response = vm.toString(abi.encode(success, returnData));
                 } else {
                     // we emulate tx send to address(0) by using the create opcode:
                     address addr;
                     assembly {
                         addr := create(0, add(data, 0x20), mload(data))
                     }
-                    response = vm.toString(addr);
+                    response = vm.toString(abi.encode(addr != address(0), ""));
                 }
+            }
+            // Create
+            else if (requestType == 0xF0) {
+                (address from, bytes memory data, uint256 value) = abi.decode(
+                    requestData,
+                    (address, bytes, uint256)
+                );
+                if (broadcast) {
+                    vm.broadcast(from);
+                } else {
+                    // if we do not broadcast, we can prank the address to act as if we had the private key
+                    // TODO make it an option in the request data ?
+                    vm.prank(from, from);
+                }
+
+                address addr;
+                assembly {
+                    addr := create(value, add(data, 0x20), mload(data))
+                }
+                response = vm.toString(addr);
+            }
+            // Send
+            else if (requestType == 2) {
+                (address from, address payable to, uint256 value) = abi.decode(
+                    requestData,
+                    (address, address, uint256)
+                );
+                if (broadcast) {
+                    vm.broadcast(from);
+                } else {
+                    // if we do not broadcast, we can prank the address to act as if we had the private key
+                    // TODO make it an option in the request data ?
+                    vm.prank(from, from);
+                }
+
+                bool success = to.send(value);
+                response = vm.toString(success);
             }
             // GetBalance Request (0x31 is the balance opcode)
             else if (requestType == 0x31) {
                 address account = abi.decode(requestData, (address));
-                response = vm.toString(abi.encode(account.balance));
+                response = vm.toString(account.balance);
             } else {
                 terminate1193(processID, "UNKNOWN_REQUEST_TYPE");
             }
