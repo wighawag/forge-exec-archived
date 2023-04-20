@@ -96,8 +96,106 @@ forge test
 
 ## Why?
 
-[Forge scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) is becoming more popular. With forge-exec you can run external program to deploy contracts and more.
+[Forge scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) allow you to perform deployment task in solidity. With forge-exec you can run external program to deploy contracts and more. 
 
 ## Development
 
 This project uses [Foundry](https://getfoundry.sh). See the [book](https://book.getfoundry.sh/getting-started/installation.html) for instructions on how to install and use Foundry.
+
+
+## Quick Start
+
+```
+mkdir my-forge-exec-project;
+cd my-forge-exec-project;
+forge init;
+
+################
+#forge install wighawag/forge-exec;
+cp -R /home/wighawag/dev/github.com/wighawag/forge-exec lib/forge-exec;
+################
+
+################
+#cargo install --version 0.0.1 --root . forge-exec-ipc-client;
+
+#export PATH=./bin:$PATH;
+#mkdir bin;
+#cp lib/forge-exec/forge-exec-ipc-client/target/debug/forge-exec-ipc-client ./bin/forge-exec-ipc-client;
+
+cp lib/forge-exec/forge-exec-ipc-client/target/debug/forge-exec-ipc-client ./forge-exec-ipc-client;
+################
+
+cat >> .gitignore <<EOF
+
+# forge-exec-ipc-client binary
+/.crates2.json
+/.crates.toml
+/bin
+EOF
+cat > package.json <<EOF
+{
+  "name": "my-forge-exec-project",
+  "private": true,
+  "type": "module",
+  "TODO_devDependencies": {
+    "forge-exec-ipc-server": "0.0.1"
+  },
+  "scripts": {
+    "execute": "forge script --ffi script/Counter.s.sol -vvvv"
+  }
+}
+EOF
+
+cat >> remappings.txt <<EOF
+forge-exec/=lib/forge-exec/src/
+EOF
+
+pnpm i
+
+############
+pnpm link /home/wighawag/dev/github.com/wighawag/forge-exec/forge-exec-ipc-server-js
+##########
+
+cat > script/example.js <<EOF
+// @ts-check
+import { execute } from "forge-exec-ipc-server";
+execute(async (forge) => {
+  const results = await Promise.all([
+    forge.create({
+      from: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      data: "0x608060405234801561001057600080fd5b5060f78061001f6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80633fb5c1cb1460415780638381f58a146053578063d09de08a14606d575b600080fd5b6051604c3660046083565b600055565b005b605b60005481565b60405190815260200160405180910390f35b6051600080549080607c83609b565b9190505550565b600060208284031215609457600080fd5b5035919050565b60006001820160ba57634e487b7160e01b600052601160045260246000fd5b506001019056fea2646970667358221220f0cfb2159c518c3da0ad864362bad5dc0715514a9ab679237253d506773a0a1b64736f6c63430008130033",
+    }),
+  ]);
+
+  const tx = await forge.send({
+    to: "0x0000000000000000000000000000000000000001",
+    value: 1n,
+  });
+  console.log({ tx: tx });
+  return {
+    types: results.map(() => ({
+      type: "address",
+    })),
+    values: results,
+  };
+});
+EOF
+cat > script/Counter.s.sol <<EOF
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
+
+import {Script, console} from "forge-std/Script.sol";
+import {Exec} from "forge-exec/Exec.sol";
+
+contract CounterScript is Script {
+    function setUp() public {}
+
+    function run() public {
+        string[] memory args = new string[](1);
+        args[0] = "./script/example.js";
+        Exec.execute("node", args, true);
+    }
+}
+EOF
+pnpm execute;
+```
