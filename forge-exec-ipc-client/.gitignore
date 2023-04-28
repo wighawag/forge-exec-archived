@@ -1,8 +1,5 @@
 /target
-package.json
-start.js
-uninstall.js
-pre-install.js
-.ipc*
-.executor*
-.rust-executor*
+
+bin/*
+!bin/forge-exec-ipc-client
+!bin/download.sh

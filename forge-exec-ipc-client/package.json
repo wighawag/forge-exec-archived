@@ -1,0 +1,20 @@
+{
+  "name": "forge-exec-ipc-client",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wighawag/forge-exec"
+  },
+  "homepage": "https://github.com/wighawag/forge-exec/tree/main/forge-exec-ipc-client",
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE",
+    "Cargo.toml",
+    "Cargo.lock"
+  ],
+  "scripts": {
+    "postinstall": "bash -c 'chmod u+x bin/forge-exec-ipc-client' || echo 'you might need to change the permission for forge-exec bin/forge-exec-ipc-client file to make it executable'"
+  }
+}
