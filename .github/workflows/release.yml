@@ -41,7 +41,7 @@ jobs:
       - name: tar
         working-directory: ./forge-exec-ipc-client
         run: |
-          export PARENT_FOLDER=output
+          export PARENT_FOLDER=../output
           export FILE_NAME=forge-exec-ipc-client${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
           export FOLDER_NAME=forge-exec-ipc-client_${{ github.ref_name }}_${{ matrix.target }}
           echo $FOLDER_NAME/$FILE_NAME
