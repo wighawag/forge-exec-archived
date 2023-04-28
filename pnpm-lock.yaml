@@ -2,7 +2,11 @@ lockfileVersion: '6.0'
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      forge-exec-ipc-client:
+        specifier: 0.0.1
+        version: 0.0.1
 
   demo-js:
     devDependencies:
@@ -527,6 +531,11 @@ packages:
     dependencies:
       to-regex-range: 5.0.1
     dev: true
+
+  /forge-exec-ipc-client@0.0.1:
+    resolution: {integrity: sha512-u/6Yw3/2j5K2G1pl7rCPAyuCHn7zI6ZuIBvMvRUFAwtUM3dhozT+xf5SgudZD6HYVxNzhsgNBvcqzCshxEDWqg==}
+    requiresBuild: true
+    dev: false
 
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
