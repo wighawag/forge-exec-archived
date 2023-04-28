@@ -29,8 +29,8 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Compile and release
-        working-directory: ./forge-exec-ipc-client
         uses: rust-build/rust-build.action@v1.3.2
+        working-directory: ./forge-exec-ipc-client
         env:
           UPLOAD_MODE: none
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
