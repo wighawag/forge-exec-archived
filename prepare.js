@@ -10,7 +10,7 @@ if (fs.existsSync("node_modules/forge-exec-ipc-client")) {
     const new_folder_path = 'node_modules/.bin/';
     const new_file_path = path.join(new_folder_path, 'forge-exec-ipc-client');
     const relative_path = path.relative(new_folder_path, folder_path);
-    fs.writeFileSync(new_file_path, content.replace(`$DIR/\${TARGET}/forge-exec-ipc-client`, path.join(relative_path, `\${TARGET}/forge-exec-ipc-client`)))
+    fs.writeFileSync(new_file_path, content.replace(`$DIR/\${TARGET}/forge-exec-ipc-client`, `$DIR/${path.join(relative_path, `\${TARGET}/forge-exec-ipc-client`)}`))
     fs.chmodSync(new_file_path, 0764);
 } else {
     console.error(`Please install "forge-exec-ipc-client", this contains the executable needed for forge-exec to operate`)
