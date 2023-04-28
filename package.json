@@ -1,6 +1,6 @@
 {
   "name": "forge-exec",
-  "version": "__VERSION__",
+  "version": "0.0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/wighawag/forge-exec"
