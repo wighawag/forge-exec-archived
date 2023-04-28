@@ -127,16 +127,16 @@ jobs:
     #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     #       NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
-    name: publish to npm
-    needs: [release, windows-msvc-release, macos-arm-release]
-    runs-on: ubuntu-latest
-    if: ${{ secrets.NPM_AUTH_TOKEN }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - uses: JS-DevTools/npm-publish@v2
-        with:
-          token: ${{ secrets.NPM_AUTH_TOKEN }}
-          package: forge-exec-ipc-client
+    # name: publish to npm
+    # needs: [release, windows-msvc-release, macos-arm-release]
+    # runs-on: ubuntu-latest
+    # if: ${{ secrets.NPM_AUTH_TOKEN }}
+    # steps:
+    #   - uses: actions/checkout@v3
+    #   - uses: actions/setup-node@v3
+    #     with:
+    #       node-version: 18
+    #   - uses: JS-DevTools/npm-publish@v2
+    #     with:
+    #       token: ${{ secrets.NPM_AUTH_TOKEN }}
+    #       package: forge-exec-ipc-client
