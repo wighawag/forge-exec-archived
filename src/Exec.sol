@@ -135,7 +135,7 @@ library Exec {
         string[] memory args
     ) private returns (bytes memory) {
         string[] memory inputs = new string[](args.length + 3);
-        inputs[0] = "./forge-exec-ipc-client";
+        inputs[0] = "forge-exec-ipc-client";
         inputs[1] = "init";
         inputs[2] = program;
         for (uint256 i = 0; i < args.length; i++) {
@@ -153,7 +153,7 @@ library Exec {
         string memory errorMessage
     ) private {
         string[] memory inputs = new string[](4);
-        inputs[0] = "./forge-exec-ipc-client";
+        inputs[0] = "forge-exec-ipc-client";
         inputs[1] = "terminate";
         inputs[2] = id;
         inputs[3] = errorMessage;
@@ -171,7 +171,7 @@ library Exec {
         string memory value
     ) private returns (bytes memory) {
         string[] memory inputs = new string[](4);
-        inputs[0] = "./forge-exec-ipc-client";
+        inputs[0] = "forge-exec-ipc-client";
         inputs[1] = "exec";
         inputs[2] = id;
         inputs[3] = value;

@@ -1,4 +1,5 @@
 cache/
 out/
 node_modules/
-.rust-executor*
+bin/*
+!bin/forge-exec-ipc-client
