@@ -139,9 +139,13 @@ jobs:
           TARGET=x86_64-unknown-linux-musl mkdir bin/$TARGET; tar -xf forge-exec-ipc-client_${{ github.ref_name }}_$TARGET.tar.gz --strip=1 -C bin/$TARGET
       - name: prepare package.json
         run: V_REF=${{ github.ref_name }};VERSION=${V_REF:1};sed -i "s/__VERSION__/$VERSION/" package.json
-      - uses: JS-DevTools/npm-publish@v2
-        with:
-          token: ${{ secrets.NPM_AUTH_TOKEN }}
+      - name: tree
+        run: |
+          sudo apt-get install -y tree
+          tree
+      # - uses: JS-DevTools/npm-publish@v2
+      #   with:
+      #     token: ${{ secrets.NPM_AUTH_TOKEN }}
 
 
            
