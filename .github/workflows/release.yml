@@ -137,6 +137,6 @@ jobs:
         with:
           node-version: 18
       - uses: JS-DevTools/npm-publish@v2
-        working-directory: ./forge-exec-ipc-client
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
+          package: forge-exec-ipc-client
