@@ -30,8 +30,8 @@ jobs:
       - uses: actions/checkout@master
       - name: Compile and release
         uses: rust-build/rust-build.action@v1.3.2
-        working-directory: ./forge-exec-ipc-client
         env:
+          SRC_DIR: forge-exec-ipc-client
           UPLOAD_MODE: none
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
