@@ -6,13 +6,17 @@
 
 Install `forge-exec` as git submodules in your foundry project.
 
-```
+```bash
 forge install wighawag/forge-exec
 ```
 
-Install `forge-exec-ipc-client` on your machine, source code can be found in [forge-exec-ipc-client](./forge-exec-ipc-client/)
+Install `forge-exec-ipc-client` on your machine, see [release files](https://github.com/wighawag/forge-exec/releases/tag/forge-exec-ipc-client-v0.0.2)
 
-```
+This need to be in your `PATH`
+
+You can also easily instal from source, see folder: [forge-exec-ipc-client](./forge-exec-ipc-client/)
+
+```bash
 cargo install forge-exec-ipc-client
 ```
 
@@ -40,7 +44,7 @@ bytes memory result = Exec.execute("node", args, false); // the third parameter 
 
 > Note The program executed need to create an IPC server to communicate back with forge, see how it works in [forge-exec-ipc-client's README.md](./forge-exec-ipc-client/README.md).
 >
-> You can use the npm package `forge-exec-ipc-server` for that.
+> You can use the npm package `forge-exec-ipc-server` for that. See [repo](https://github.com/wighawag/forge-exec-ipc-server-js)
 
 ## Javascript Setup
 
@@ -80,20 +84,6 @@ We have example usage for both [tests](./demo-js/test/Exec.t.sol) and [scripts](
 
 `forge-exec` is agnostic to what program you execute, you just need to follow the ipc communication protocol. you can find a very basic rust example in the [demo-rust folder](./demo-rust/)
 
-## Contributing
-
-Clone this repo and run:
-
-```
-forge install
-```
-
-Make sure all tests pass, add new ones if needed:
-
-```
-forge test
-```
-
 ## Why?
 
 [Forge scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) allow you to perform deployment task in solidity. With forge-exec you can run external program to deploy contracts and more. 
@@ -110,38 +100,23 @@ mkdir my-forge-exec-project;
 cd my-forge-exec-project;
 forge init;
 
-################
-#forge install wighawag/forge-exec;
-cp -R /home/wighawag/dev/github.com/wighawag/forge-exec lib/forge-exec;
-################
-
-################
-#cargo install --version 0.0.1 --root . forge-exec-ipc-client;
-
-#export PATH=./bin:$PATH;
-#mkdir bin;
-#cp lib/forge-exec/forge-exec-ipc-client/target/debug/forge-exec-ipc-client ./bin/forge-exec-ipc-client;
-
-cp lib/forge-exec/forge-exec-ipc-client/target/debug/forge-exec-ipc-client ./forge-exec-ipc-client;
-################
+forge install wighawag/forge-exec;
 
 cat >> .gitignore <<EOF
 
-# forge-exec-ipc-client binary
-/.crates2.json
-/.crates.toml
-/bin
+node_modules/
+.ipc.log
 EOF
 cat > package.json <<EOF
 {
   "name": "my-forge-exec-project",
   "private": true,
   "type": "module",
-  "TODO_devDependencies": {
+  "devDependencies": {
     "forge-exec-ipc-server": "0.0.1"
   },
   "scripts": {
-    "execute": "forge script --ffi script/Counter.s.sol -vvvv"
+    "execute": "forge script --ffi script/Counter.s.sol -vvvvv"
   }
 }
 EOF
@@ -151,10 +126,6 @@ forge-exec/=lib/forge-exec/src/
 EOF
 
 pnpm i
-
-############
-pnpm link /home/wighawag/dev/github.com/wighawag/forge-exec/forge-exec-ipc-server-js
-##########
 
 cat > script/example.js <<EOF
 // @ts-check
@@ -197,5 +168,8 @@ contract CounterScript is Script {
     }
 }
 EOF
-pnpm execute;
+
+# we ensure forge-exec-ipc-client is in the path
+# you can install it as mentioned in the README
+PATH=lib/forge-exec/forge-exec-ipc-client/bin:$PATH pnpm execute;
 ```
